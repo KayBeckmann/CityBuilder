@@ -1,6 +1,8 @@
 import 'package:city_builder/game/city_game.dart';
+import 'package:city_builder/l10n/app_localizations.dart';
 import 'package:city_builder/ui/game_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 class CityBuilderApp extends StatelessWidget {
   const CityBuilderApp({super.key, required this.game});
@@ -12,6 +14,13 @@ class CityBuilderApp extends StatelessWidget {
     return MaterialApp(
       title: 'CityBuilder',
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: ThemeData.dark().copyWith(
         colorScheme: const ColorScheme.dark(
           primary: Color(0xFF4CAF50),

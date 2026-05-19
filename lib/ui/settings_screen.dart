@@ -1,3 +1,4 @@
+import 'package:city_builder/core/accessibility.dart';
 import 'package:city_builder/core/audio_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +9,7 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final audio = ref.watch(audioProvider);
+    final accessibility = ref.watch(accessibilityProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFF1a1a2e),
@@ -47,12 +49,36 @@ class SettingsScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 16),
-          _SectionHeader(label: 'Spiel'),
+          _SectionHeader(label: 'Barrierefreiheit'),
           _SettingsCard(
             children: [
-              ListTile(
-                title: const Text('Version', style: TextStyle(color: Colors.white70)),
-                trailing: const Text('0.1.0', style: TextStyle(color: Colors.white38)),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Farbblindheit', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                    const SizedBox(height: 8),
+                    ...ColorBlindMode.values.map((mode) => RadioListTile<ColorBlindMode>(
+                          title: Text(mode.label, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                          value: mode,
+                          groupValue: accessibility.colorBlindMode,
+                          onChanged: (v) => ref.read(accessibilityProvider.notifier).setColorBlindMode(v!),
+                          activeColor: const Color(0xFF4CAF50),
+                          dense: true,
+                        )),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _SectionHeader(label: 'Über'),
+          _SettingsCard(
+            children: [
+              const ListTile(
+                title: Text('Version', style: TextStyle(color: Colors.white70)),
+                trailing: Text('0.1.0', style: TextStyle(color: Colors.white38)),
               ),
             ],
           ),
