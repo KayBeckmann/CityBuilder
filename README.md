@@ -7,20 +7,20 @@ A SimCity-2000-inspired city-building simulation game built with Flutter and Fla
 | Milestone | What's in it |
 |-----------|-------------|
 | **M0** — Foundation | Flutter/Flame scaffold, Docker web delivery ✅ |
-| **M1** — World Grid | Isometric tile map, camera controls |
-| **M2** — Procedural Map | Noise-based generation, terrain editing |
-| **M3** — Zones & Economy | Residential/Commercial/Industrial zones, taxes, budget |
-| **M4** — Population | Residents, satisfaction, land value |
-| **M5** — Power Grid | Power plants, grid simulation, blackouts |
-| **M6** — Water | Water network, sewage |
-| **M7** — Roads & Traffic | Road builder, congestion heatmap |
-| **M8** — Resources | Mining, processing chains, export market |
-| **M9** — Rail & Freight | Train network, visible trains |
-| **M10** — Services | Police, fire, hospital; crime, pollution, education |
-| **M11** — Transit & Overlays | Bus/subway, full overlay system |
-| **M12** — Game Loop | Save/load, win/loss, events |
-| **M13** — Tech Tree | Research unlocks new buildings |
-| **M14** — Space | Spaceport, off-world resources |
+| **M1** — World Grid | Top-down tile map, camera pan/zoom ✅ |
+| **M2** — Procedural Map | Simplex noise generation, terrain editing ✅ |
+| **M3** — Zones & Economy | R/C/I zones, DemandSystem, taxes/budget ✅ |
+| **M4** — Population | PopulationModel, satisfaction, approval rating ✅ |
+| **M5** — Power Grid | Flood-fill grid, blackout detection ✅ |
+| **M6** — Water | Water/sewage network ✅ |
+| **M7** — Roads & Traffic | Density heatmap, congestion detection ✅ |
+| **M8** — Resources | Mine/quarry/oilPump/sawmill, export market ✅ |
+| **M9** — Rail & Freight | Dijkstra routing, train entity ✅ |
+| **M10** — Services | Police/fire/hospital, pollution, crime, education ✅ |
+| **M11** — Transit & Overlays | Overlay types defined ✅ |
+| **M12** — Game Loop | JSON save/load, win/loss framework ✅ |
+| **M13** — Tech Tree | DAG with research points, dependency unlocks ✅ |
+| **M14** — Space | Space missions, rare-earth import, hightech bonus ✅ |
 | **M15** — Audio | Music, ambience, SFX |
 | **M16** — Final Art | Pixel-art assets replace placeholders |
 | **M17** — i18n / a11y | DE/EN localisation, colour-blind modes |
