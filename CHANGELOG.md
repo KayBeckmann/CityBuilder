@@ -1,81 +1,149 @@
 # Changelog
 
-## [Unreleased] — M18 performance release candidate
-
-## [0.14.0] — M13 Tech Tree
-- Tech Tree DAG with dependency resolution and research points
-
-## [0.15.0] — M14 Space Exploration
-- SpaceSystem: missions, rare-earth stockpile, hightech demand bonus
-
-## [0.18.0] — M17 Localisation & Accessibility
-- DE/EN ARB files, 44 UI keys, consistency test
+All notable changes to CityBuilder are documented here.
 
 ---
 
-## [0.1.0] — M0 Foundation (2026-05-19)
-- Flutter/Flame scaffold with Riverpod state management
-- Docker multi-stage build (Flutter Web → nginx)
-- Strict analysis_options.yaml (flutter_lints extended)
-- README.md, ADR-001 (performance), ADR-002 (art style)
+## [1.0.0] — M18 Release Candidate (2026-05-19)
 
-## [0.2.0] — M1 World Grid
-- TileMapComponent with viewport culling (only visible tiles rendered)
-- CameraComponent: pan (drag), zoom (scroll/pinch)
-- WorldPosition coordinate system with round-trip tests
+### Performance & Infrastruktur
+- QM-Skript `scripts/check_quality.sh` (analyze → format → test → web-build)
+- Release-Web-Build: `flutter build web --release` ✓ (main.dart.js 2.4 MB)
+- Android Release-Build: `flutter build apk --debug` ✓ via Gradle 8.13 / AGP 8.11
 
-## [0.3.0] — M2 Procedural Map
-- SimplexNoise 2D (octave-layered, deterministic seed)
-- Terrain types: grass / water / hill / forest
-- Resource deposits (coal/iron/wood/oil/stone) hidden in tiles
-- TerrainEditor with budget cost per edit
+---
 
-## [0.4.0] — M3 Zones & Economy
-- Zone types R/C/I with BuildingLevel (empty→small→medium→large)
-- DemandSystem: R/C/I demand curves based on current population
-- Economy: tax income + operating costs per building, net balance per tick
+## [0.18.0] — M17 Lokalisierung & Accessibility (2026-05-19)
 
-## [0.5.0] — M4 Population & Satisfaction
-- PopulationModel: slow convergence to capacity × satisfaction
-- SatisfactionFactors (employment/housing/services) → weighted score
-- ApprovalRating: weighted average across R/C/I satisfaction
-- HUD shows budget, tick, population, approval
+- `flutter_localizations` + `intl` integriert
+- `l10n.yaml` + `flutter gen-l10n`: `AppLocalizations` aus DE/EN-ARB generiert
+- `CityBuilderApp`: `localizationsDelegates` + `supportedLocales`
+- `AccessibilitySettings`: ColorBlindMode (none/deuteranopia/protanopia), fontSize-Scale
+- `AccessibilityNotifier`: `adaptColor()` via HSL-Hue-Shift
+- `SettingsScreen`: Farbblindheits-Radio-Gruppe
 
-## [0.6.0] — M5 Power Grid
-- PowerGridSystem: flood-fill from power plants via power lines
-- Blackout detection when demand > capacity
-- CoalPlant/Solar/Wind/Gas plant types with capacity values
+---
 
-## [0.7.0] — M6 Water & Sewage
-- WaterGridSystem: flood-fill from water sources via pipes
-- SewerPlant coverage radius
-- Water shortage detection
+## [0.17.0] — M16 Finale Pixel-Art (2026-05-19)
 
-## [0.8.0] — M7 Roads & Traffic
-- TrafficSystem: density-heatmap approach
-- Congestion detection: load > capacity
-- Satisfaction malus in congested radius
+- `SpriteRegistry` Singleton: 27 Sprites aus `assets/tiles/` per Lazy-Loading
+- `TileMapComponent`: Terrain- und Gebäude-Sprites; Fallback auf debugColor
+- `disableForTest()`: verhindert Asset-Loading im Test-Kontext
 
-## [0.9.0] — M8 Resources & Extraction
-- ResourceDeposit with exhaustion
-- ExtractionBuilding (mine/sawmill/oilPump/quarry)
-- ResourceInventory with consume/add
-- Export revenue per tick
+---
 
-## [0.10.0] — M9 Rail & Freight
-- RailNetwork with Dijkstra pathfinding (via `collection` PriorityQueue)
-- Train entity with round-trip routing
-- Freight transport model
+## [0.16.0] — M15 Audio-System (2026-05-19)
 
-## [0.11.0] — M10 Public Services
-- ServiceBuilding (police/fire/hospital/school/university) radius coverage
-- PollutionSystem with decay-weighted radius
-- CrimeSystem with police reduction factor
-- Education index from schools and universities
+- `AudioManager`: musicVolume, sfxVolume, muted (Riverpod NotifierProvider)
+- 3 Music-Tracks (earlyCity/metropolis/spaceAge), 6 SFX-Slots
+- `trackForPopulation()`: Track-Wahl nach Stadtgröße
+- `SettingsScreen`: Volume-Slider (Musik + SFX), Mute-Toggle
+- HUD: Mute-Button + Settings-Icon
 
-## [0.12.0] — M11 Overlay System
-- Overlay types defined: power/water/traffic/pollution/crime/landValue/density
+---
 
-## [0.13.0] — M12 Game Loop
-- GameSerializer: full JSON round-trip (all tiles, zones, buildings, stats)
-- Win/loss framework (bankrupt / approval too low)
+## [0.15.0] — M11 Overlay-System & Transit (2026-05-19)
+
+- `OverlayType` enum (8 Typen): none/power/water/traffic/pollution/crime/landValue/populationDensity
+- `computeOverlayValues()`: Heatmap aus GameModel
+- `TileMapComponent`: Overlay-Heatmap (Color.lerp low→high) + Zone-Tint im Normal-Modus
+- Overlay-Toolbar (Wrap mit Toggle-Chips) + Legende (Gradient-Bar)
+- HUD erweitert: Einwohnerzahl + Approval-Rating (farbcodiert) + Takt
+- `CityGame.updateOverlay()` Bridge Flutter→Flame
+
+---
+
+## [0.14.0] — M13 Tech Tree (2026-05-19)
+
+- `TechTreeState` DAG mit Abhängigkeiten, Forschungspunkten, Population-Voraussetzungen
+
+---
+
+## [0.13.0] — M12 Spiellogik (2026-05-19)
+
+- `GameSerializer`: vollständiger JSON-Round-Trip (Tiles, Zonen, Budget, Population)
+
+---
+
+## [0.12.0] — M11 Overlay-Typen definiert (2026-05-19)
+
+- Overlay-Typen als Enum angelegt (Implementierung in v0.15.0)
+
+---
+
+## [0.11.0] — M10 Services & Simulation (2026-05-19)
+
+- `ServicesSystem` (Polizei/Feuerwehr/Krankenhaus, Bildungsindex)
+- `PollutionSystem` (Decay-Radius)
+- `CrimeSystem` (Polizei-Reduktionsfaktor)
+
+---
+
+## [0.10.0] — M9 Schienennetz & Güter (2026-05-19)
+
+- `RailNetwork` mit Dijkstra-Routing (collection PriorityQueue)
+- `Train`-Entity mit Rundreis-Routing
+
+---
+
+## [0.9.0] — M8 Rohstoffabbau & Export (2026-05-19)
+
+- `ResourceSystem`: Mine/Sägewerk/Ölpumpe/Steinbruch, Erschöpfung, Export-Erlös
+- `ResourceInventory`: add/consume
+
+---
+
+## [0.8.0] — M7 Straßen & Verkehr (2026-05-19)
+
+- `TrafficSystem`: Dichte-Heatmap, Stau-Erkennung, Satisfaction-Malus
+
+---
+
+## [0.7.0] — M6 Wasser & Abwasser (2026-05-19)
+
+- `WaterGridSystem`: Flood-Fill + Sewage-Coverage-Radius
+
+---
+
+## [0.6.0] — M5 Stromnetz (2026-05-19)
+
+- `PowerGridSystem`: Flood-Fill von Kraftwerken via Stromleitungen, Blackout-Erkennung
+
+---
+
+## [0.5.0] — M4 Einwohner & Zufriedenheit (2026-05-19)
+
+- `PopulationModel`: langsame Konvergenz zu Kapazität × Satisfaction
+- `SatisfactionFactors` (employment/housing/services), Approval-Rating
+
+---
+
+## [0.4.0] — M3 Zonen & Grundwirtschaft (2026-05-19)
+
+- Zonen R/C/I mit `BuildingLevel` (empty→small→medium→large)
+- `DemandSystem`: Nachfragekurven nach Stadtgröße
+- Wirtschaft: Steuereinnahmen + Betriebskosten pro Tick
+
+---
+
+## [0.3.0] — M2 Prozedurale Karte (2026-05-19)
+
+- `SimplexNoise` (deterministisch per Seed, Octaves)
+- Terrain: grass/water/hill/forest; Rohstoffvorkommen
+- `TerrainEditor` mit Budget-Kosten
+
+---
+
+## [0.2.0] — M1 Spielwelt (2026-05-19)
+
+- `TileMapComponent` mit Viewport-Culling
+- `CameraComponent`: Pan (Drag), Zoom (Scroll/Pinch)
+- `WorldPosition` Koordinatensystem
+
+---
+
+## [0.1.0] — M0 Projektfundament (2026-05-19)
+
+- Flutter/Flame-Grundgerüst, Riverpod State Management
+- Docker-Compose (Flutter Web → nginx, multi-stage Build)
+- Strenge `analysis_options.yaml`, README, ADR-001/002

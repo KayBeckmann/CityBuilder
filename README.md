@@ -21,10 +21,10 @@ A SimCity-2000-inspired city-building simulation game built with Flutter and Fla
 | **M12** — Game Loop | JSON save/load, win/loss framework ✅ |
 | **M13** — Tech Tree | DAG with research points, dependency unlocks ✅ |
 | **M14** — Space | Space missions, rare-earth import, hightech bonus ✅ |
-| **M15** — Audio | Music, ambience, SFX |
-| **M16** — Final Art | Pixel-art assets replace placeholders |
-| **M17** — i18n / a11y | DE/EN localisation, colour-blind modes |
-| **M18** — Release | Performance polish, release build |
+| **M15** — Audio | AudioManager, volume/mute controls, settings screen ✅ |
+| **M16** — Final Art | Sprite-Renderer, 27 pixel-art assets in game ✅ |
+| **M17** — i18n / a11y | DE/EN localisation, colour-blind modes ✅ |
+| **M18** — Release | QM script, release web-build, CHANGELOG ✅ |
 
 ## Stack
 
