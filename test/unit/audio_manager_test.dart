@@ -41,16 +41,11 @@ void main() {
     });
 
     test('trackForPopulation selects correct track', () {
-      final mgr = c_makeManager();
+      final c = makeContainer();
+      final mgr = c.read(audioProvider.notifier);
       expect(mgr.trackForPopulation(0), MusicTrack.earlyCity);
       expect(mgr.trackForPopulation(5000), MusicTrack.metropolis);
       expect(mgr.trackForPopulation(50000), MusicTrack.spaceAge);
     });
   });
-}
-
-AudioManager c_makeManager() {
-  final c = ProviderContainer();
-  addTearDown(c.dispose);
-  return c.read(audioProvider.notifier);
 }

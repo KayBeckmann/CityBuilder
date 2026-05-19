@@ -2,6 +2,7 @@ import 'package:city_builder/core/overlay_type.dart';
 import 'package:city_builder/core/tile_map.dart';
 import 'package:city_builder/core/world_position.dart';
 import 'package:city_builder/core/zone_type.dart';
+import 'package:city_builder/game/sprite_registry.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 
@@ -20,9 +21,9 @@ class TileMapComponent extends Component with HasGameReference {
     ..strokeWidth = _borderWidth;
 
   static final _zoneOverlayPaints = {
-    ZoneType.residential: Paint()..color = const Color(0x4032CD32),
-    ZoneType.commercial: Paint()..color = const Color(0x400000FF),
-    ZoneType.industrial: Paint()..color = const Color(0x40FFA500),
+    ZoneType.residential: Paint()..color = const Color(0x3032CD32),
+    ZoneType.commercial: Paint()..color = const Color(0x300000FF),
+    ZoneType.industrial: Paint()..color = const Color(0x30FFA500),
   };
 
   void updateOverlay(OverlayType overlay, Map<WorldPosition, double> values) {
@@ -34,6 +35,7 @@ class TileMapComponent extends Component with HasGameReference {
   void render(Canvas canvas) {
     final camera = game.camera;
     final visibleRect = camera.visibleWorldRect;
+    final registry = SpriteRegistry.I;
 
     final firstCol = (visibleRect.left / kTileSize).floor().clamp(0, tileMap.width - 1);
     final lastCol = (visibleRect.right / kTileSize).ceil().clamp(0, tileMap.width);
@@ -46,17 +48,35 @@ class TileMapComponent extends Component with HasGameReference {
         final data = tileMap.getData(pos);
         final screenPos = pos.toScreen();
         final rect = Rect.fromLTWH(screenPos.x, screenPos.y, kTileSize, kTileSize);
+        final destSize = Vector2(kTileSize, kTileSize);
 
-        // Base terrain
-        canvas.drawRect(rect, Paint()..color = data.terrain.debugColor);
+        // ── Terrain ──────────────────────────────────────────────────
+        final terrainSprite = registry.terrainSprite(data.terrain);
+        if (terrainSprite != null) {
+          terrainSprite.render(canvas, position: screenPos, size: destSize);
+        } else {
+          canvas.drawRect(rect, Paint()..color = data.terrain.debugColor);
+        }
 
-        // Zone overlay (always shown, subtle)
-        if (data.zone != null && activeOverlay == OverlayType.none) {
+        // ── Building sprite ──────────────────────────────────────────
+        if (data.zone != null && data.buildingLevel.hasBuilding) {
+          final buildingSprite = registry.buildingSprite(data.zone!, data.buildingLevel);
+          if (buildingSprite != null) {
+            buildingSprite.render(canvas, position: screenPos, size: destSize);
+          } else if (activeOverlay == OverlayType.none) {
+            final zonePaint = _zoneOverlayPaints[data.zone!];
+            if (zonePaint != null) canvas.drawRect(rect, zonePaint);
+          }
+        }
+
+        // ── Zone tint (no sprites loaded yet) ────────────────────────
+        if (data.zone != null && !data.buildingLevel.hasBuilding &&
+            activeOverlay == OverlayType.none) {
           final zonePaint = _zoneOverlayPaints[data.zone!];
           if (zonePaint != null) canvas.drawRect(rect, zonePaint);
         }
 
-        // Active overlay heat map
+        // ── Overlay heatmap ──────────────────────────────────────────
         if (activeOverlay != OverlayType.none) {
           final value = overlayValues[pos] ?? 0.0;
           if (value > 0) {
@@ -65,7 +85,7 @@ class TileMapComponent extends Component with HasGameReference {
           }
         }
 
-        // Grid lines
+        // ── Grid lines ────────────────────────────────────────────────
         canvas.drawRect(rect, _borderPaint);
       }
     }

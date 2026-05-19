@@ -1,6 +1,7 @@
 import 'package:city_builder/core/overlay_type.dart';
 import 'package:city_builder/core/tile_map.dart';
 import 'package:city_builder/core/world_position.dart';
+import 'package:city_builder/game/sprite_registry.dart';
 import 'package:city_builder/game/tile_map_component.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
@@ -30,6 +31,7 @@ class CityGame extends FlameGame
   @override
   Future<void> onLoad() async {
     await super.onLoad();
+    SpriteRegistry.I.schedulePreload(); // fire-and-forget, non-blocking
 
     if (kDebugMode) {
       camera.viewport.add(
