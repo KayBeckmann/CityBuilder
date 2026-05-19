@@ -1,4 +1,6 @@
+import 'package:city_builder/core/overlay_type.dart';
 import 'package:city_builder/core/tile_map.dart';
+import 'package:city_builder/core/world_position.dart';
 import 'package:city_builder/game/tile_map_component.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
@@ -39,6 +41,10 @@ class CityGame extends FlameGame
         ),
       );
     }
+  }
+
+  void updateOverlay(OverlayType overlay, Map<WorldPosition, double> values) {
+    _tileMapComponent?.updateOverlay(overlay, values);
   }
 
   void loadMap(TileMap tileMap) {
