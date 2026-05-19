@@ -29,3 +29,5 @@ flutter:
     - assets/tiles/
     - assets/sounds/
     - assets/fonts/
+    - lib/l10n/app_de.arb
+    - lib/l10n/app_en.arb
