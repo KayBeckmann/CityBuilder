@@ -1,4 +1,5 @@
 import 'package:city_builder/core/building_level.dart';
+import 'package:city_builder/core/economy.dart';
 import 'package:city_builder/core/tile_map.dart';
 import 'package:city_builder/core/world_position.dart';
 import 'package:flutter/material.dart';
@@ -9,11 +10,13 @@ class TileInfoPanel extends StatelessWidget {
     required this.position,
     required this.data,
     required this.onClose,
+    this.taxRates,
   });
 
   final WorldPosition position;
   final TileData data;
   final VoidCallback onClose;
+  final TaxRates? taxRates;
 
   @override
   Widget build(BuildContext context) {
@@ -59,6 +62,18 @@ class TileInfoPanel extends StatelessWidget {
               label: 'Kapazität',
               value: '${data.buildingLevel.capacity} EW',
             ),
+          if (data.zone != null && data.buildingLevel.hasBuilding && taxRates != null) ...[
+            _InfoRow(
+              label: 'Einkommen',
+              value: '+\$${(data.buildingLevel.capacity * 5.0 * taxRates!.forZone(data.zone!)).toStringAsFixed(1)}/Tick',
+              valueColor: Colors.greenAccent,
+            ),
+            _InfoRow(
+              label: 'Betrieb',
+              value: '-\$${data.buildingLevel.operatingCost.toStringAsFixed(1)}/Tick',
+              valueColor: Colors.redAccent,
+            ),
+          ],
           if (data.zone != null && !data.buildingLevel.hasBuilding)
             const _DevHint('Benötigt Nachfrage > 50%'),
           if (data.zone != null &&
@@ -168,10 +183,11 @@ class _InfraRow extends StatelessWidget {
 }
 
 class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.label, required this.value});
+  const _InfoRow({required this.label, required this.value, this.valueColor});
 
   final String label;
   final String value;
+  final Color? valueColor;
 
   @override
   Widget build(BuildContext context) {
@@ -188,7 +204,11 @@ class _InfoRow extends StatelessWidget {
           ),
           Text(
             value,
-            style: const TextStyle(color: Colors.white70, fontSize: 11),
+            style: TextStyle(
+              color: valueColor ?? Colors.white70,
+              fontSize: 11,
+              fontWeight: valueColor != null ? FontWeight.w600 : FontWeight.normal,
+            ),
           ),
         ],
       ),

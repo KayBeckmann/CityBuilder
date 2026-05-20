@@ -355,6 +355,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                     data: model.tileMap.getData(_tileInfoPos),
                     onClose: () =>
                         setState(() => _showTileInfo = false),
+                    taxRates: model.taxRates,
                   ),
                 ],
 
