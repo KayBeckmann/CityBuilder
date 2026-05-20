@@ -100,6 +100,17 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
       case ToolType.pipe:
         if (!notifier.placePipe(tilePos)) _flashError('Nicht genug Budget!');
+
+      case ToolType.terrainGrass:
+      case ToolType.terrainForest:
+      case ToolType.terrainHill:
+      case ToolType.terrainWater:
+        final terrain = tool.terrain;
+        if (terrain != null) {
+          if (!notifier.editTerrain(tilePos, terrain)) {
+            _flashError('Nicht genug Budget!');
+          }
+        }
     }
 
     // Refresh overlay

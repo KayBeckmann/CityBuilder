@@ -58,10 +58,66 @@ class TileInfoPanel extends StatelessWidget {
               label: 'Kapazität',
               value: '${data.buildingLevel.capacity} EW',
             ),
+          const SizedBox(height: 4),
+          _InfraRow(
+            label: 'Straße',
+            active: data.hasRoad,
+            icon: Icons.add_road,
+            activeColor: const Color(0xFF90A4AE),
+          ),
+          _InfraRow(
+            label: 'Strom',
+            active: data.hasPowerLine,
+            icon: Icons.bolt_outlined,
+            activeColor: const Color(0xFFFFEE58),
+          ),
+          _InfraRow(
+            label: 'Wasser',
+            active: data.hasPipe,
+            icon: Icons.water_outlined,
+            activeColor: const Color(0xFF42A5F5),
+          ),
         ],
       ),
     );
   }
+}
+
+class _InfraRow extends StatelessWidget {
+  const _InfraRow({
+    required this.label,
+    required this.active,
+    required this.icon,
+    required this.activeColor,
+  });
+
+  final String label;
+  final bool active;
+  final IconData icon;
+  final Color activeColor;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 72,
+              child: Text(label,
+                  style: const TextStyle(color: Colors.white38, fontSize: 11)),
+            ),
+            Icon(icon, size: 12, color: active ? activeColor : Colors.white24),
+            const SizedBox(width: 4),
+            Text(
+              active ? 'vorhanden' : 'fehlt',
+              style: TextStyle(
+                color: active ? activeColor : Colors.redAccent,
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
+      );
 }
 
 class _InfoRow extends StatelessWidget {

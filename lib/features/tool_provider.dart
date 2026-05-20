@@ -1,3 +1,4 @@
+import 'package:city_builder/core/terrain_type.dart';
 import 'package:city_builder/core/zone_type.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,7 +18,12 @@ enum ToolType {
   // Infrastructure
   road,
   powerLine,
-  pipe;
+  pipe,
+  // Terrain edit
+  terrainGrass,
+  terrainForest,
+  terrainHill,
+  terrainWater;
 
   String get label => switch (this) {
         ToolType.inspect => 'Inspizieren',
@@ -29,6 +35,10 @@ enum ToolType {
         ToolType.road => 'Straße',
         ToolType.powerLine => 'Stromleitung',
         ToolType.pipe => 'Wasserleitung',
+        ToolType.terrainGrass => 'Wiese',
+        ToolType.terrainForest => 'Wald',
+        ToolType.terrainHill => 'Hügel',
+        ToolType.terrainWater => 'Wasser',
       };
 
   IconData get icon => switch (this) {
@@ -41,6 +51,10 @@ enum ToolType {
         ToolType.road => Icons.add_road,
         ToolType.powerLine => Icons.bolt_outlined,
         ToolType.pipe => Icons.water_outlined,
+        ToolType.terrainGrass => Icons.grass,
+        ToolType.terrainForest => Icons.park_outlined,
+        ToolType.terrainHill => Icons.landscape_outlined,
+        ToolType.terrainWater => Icons.water,
       };
 
   Color get color => switch (this) {
@@ -53,6 +67,10 @@ enum ToolType {
         ToolType.road => const Color(0xFF90A4AE),
         ToolType.powerLine => const Color(0xFFFFEE58),
         ToolType.pipe => const Color(0xFF42A5F5),
+        ToolType.terrainGrass => const Color(0xFF81C784),
+        ToolType.terrainForest => const Color(0xFF388E3C),
+        ToolType.terrainHill => const Color(0xFFA1887F),
+        ToolType.terrainWater => const Color(0xFF29B6F6),
       };
 
   double get costPerTile => switch (this) {
@@ -65,6 +83,18 @@ enum ToolType {
         ToolType.road => 300,
         ToolType.powerLine => 200,
         ToolType.pipe => 250,
+        ToolType.terrainGrass => 500,
+        ToolType.terrainForest => 300,
+        ToolType.terrainHill => 1500,
+        ToolType.terrainWater => 2000,
+      };
+
+  TerrainType? get terrain => switch (this) {
+        ToolType.terrainGrass => TerrainType.grass,
+        ToolType.terrainForest => TerrainType.forest,
+        ToolType.terrainHill => TerrainType.hill,
+        ToolType.terrainWater => TerrainType.water,
+        _ => null,
       };
 
   ZoneType? get zone => switch (this) {

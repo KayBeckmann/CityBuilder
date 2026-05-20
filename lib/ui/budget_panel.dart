@@ -12,6 +12,7 @@ class BudgetPanel extends StatelessWidget {
     final eco = model.lastEconomy;
     final pop = model.population;
     final approval = model.approvalRating;
+    final sat = model.satisfaction;
 
     return Container(
       width: 240,
@@ -83,6 +84,18 @@ class BudgetPanel extends StatelessWidget {
                     : Colors.redAccent,
           ),
 
+          const SizedBox(height: 8),
+          const Divider(color: Colors.white12, height: 1),
+          const SizedBox(height: 8),
+
+          // Satisfaction factors
+          const Text('Zufriedenheit',
+              style: TextStyle(color: Colors.white38, fontSize: 10)),
+          const SizedBox(height: 4),
+          _SatisfactionBar(label: 'Arbeit', value: sat.employment, color: const Color(0xFFFF9800)),
+          _SatisfactionBar(label: 'Wohnen', value: sat.housing, color: const Color(0xFF4CAF50)),
+          _SatisfactionBar(label: 'Services', value: sat.services, color: const Color(0xFF2196F3)),
+
           // Trend sparkline
           if (pop.history.length > 1) ...[
             const SizedBox(height: 8),
@@ -138,6 +151,48 @@ class _Row extends StatelessWidget {
                     color: color,
                     fontSize: 11,
                     fontWeight: FontWeight.w600)),
+          ],
+        ),
+      );
+}
+
+class _SatisfactionBar extends StatelessWidget {
+  const _SatisfactionBar({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  final String label;
+  final double value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 52,
+              child: Text(label,
+                  style: const TextStyle(color: Colors.white38, fontSize: 10)),
+            ),
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(2),
+                child: LinearProgressIndicator(
+                  value: value,
+                  backgroundColor: Colors.white12,
+                  valueColor: AlwaysStoppedAnimation<Color>(color),
+                  minHeight: 6,
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              '${(value * 100).toInt()}%',
+              style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w600),
+            ),
           ],
         ),
       );
