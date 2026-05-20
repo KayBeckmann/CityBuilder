@@ -286,6 +286,7 @@ class GameNotifier extends Notifier<GameModel> {
     var parkCount = 0;
     var policeCount = 0;
     var hospitalCount = 0;
+    var schoolCount = 0;
     for (var row = 0; row < tileMap.height; row++) {
       for (var col = 0; col < tileMap.width; col++) {
         final pos = (col: col, row: row);
@@ -293,6 +294,7 @@ class GameNotifier extends Notifier<GameModel> {
         if (data.hasPark) parkCount++;
         if (data.hasPoliceStation) policeCount++;
         if (data.hasHospital) hospitalCount++;
+        if (data.hasSchool) schoolCount++;
         if (data.zone != null && data.buildingLevel.hasBuilding) {
           buildings++;
           if (data.hasRoad) withRoad++;
@@ -326,7 +328,7 @@ class GameNotifier extends Notifier<GameModel> {
 
     return (
       SatisfactionFactors(
-        employment: (employmentRatio * (0.5 + 0.5 * powerCov) + (hospitalCount * 0.02).clamp(0, 0.1)).clamp(0.0, 1.0),
+        employment: (employmentRatio * (0.5 + 0.5 * powerCov) + (hospitalCount * 0.02).clamp(0, 0.1) + (schoolCount * 0.03).clamp(0, 0.15)).clamp(0.0, 1.0),
         housing: (0.3 + 0.7 * roadCov).clamp(0.0, 1.0),
         services: (0.3 + (parkCount * 0.01).clamp(0, 0.10) + (policeCount * 0.03).clamp(0, 0.10) + (hospitalCount * 0.05).clamp(0, 0.10) + 0.2 * powerCov + 0.2 * pipeCov).clamp(0.0, 1.0),
       ),
@@ -369,6 +371,19 @@ class GameNotifier extends Notifier<GameModel> {
     return true;
   }
 
+  bool placeSchool(WorldPosition pos) {
+    const cost = 3500.0;
+    if (state.budget < cost) return false;
+    final tileMap = state.tileMap;
+    if (!tileMap.contains(pos)) return false;
+    if (tileMap.get(pos) == TerrainType.water) return false;
+    if (tileMap.getData(pos).hasSchool) return false;
+    tileMap.setSchool(pos);
+    tileMap.setZone(pos, null);
+    state = state.copyWith(budget: state.budget - cost);
+    return true;
+  }
+
   bool placeHospital(WorldPosition pos) {
     const cost = 6000.0;
     if (state.budget < cost) return false;
@@ -406,6 +421,7 @@ class GameNotifier extends Notifier<GameModel> {
     t.hasPark = false;
     t.hasPoliceStation = false;
     t.hasHospital = false;
+    t.hasSchool = false;
     // Power plants and water towers kept intact (use demolishAll to remove them)
     state = state.copyWith();
   }

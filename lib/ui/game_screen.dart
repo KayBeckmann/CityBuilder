@@ -105,6 +105,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       case ToolType.hospital:
         if (!notifier.placeHospital(tilePos)) _flashError('Nicht genug Budget!');
 
+      case ToolType.school:
+        if (!notifier.placeSchool(tilePos)) _flashError('Nicht genug Budget!');
+
       case ToolType.powerPlant:
         if (!notifier.placePowerPlant(tilePos)) _flashError('Nicht genug Budget!');
 
