@@ -158,6 +158,12 @@ class BudgetPanel extends ConsumerWidget {
             ),
           ]),
 
+          // Budget sparkline
+          if (model.budgetHistory.length > 1) ...[
+            const SizedBox(height: 8),
+            _BudgetSparkline(history: model.budgetHistory),
+          ],
+
           // Trend sparkline
           if (pop.history.length > 1) ...[
             const SizedBox(height: 8),
@@ -263,6 +269,70 @@ class _LoanButton extends StatelessWidget {
           ),
         ),
       );
+}
+
+class _BudgetSparkline extends StatelessWidget {
+  const _BudgetSparkline({required this.history});
+  final List<double> history;
+
+  @override
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Budget (Verlauf)',
+              style: TextStyle(color: Colors.white38, fontSize: 10)),
+          const SizedBox(height: 4),
+          SizedBox(
+            height: 32,
+            child: CustomPaint(
+              painter: _BudgetSparklinePainter(history),
+              size: const Size(double.infinity, 32),
+            ),
+          ),
+        ],
+      );
+}
+
+class _BudgetSparklinePainter extends CustomPainter {
+  _BudgetSparklinePainter(this.data);
+  final List<double> data;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (data.length < 2) return;
+    final maxV = data.reduce((a, b) => a > b ? a : b);
+    final minV = data.reduce((a, b) => a < b ? a : b);
+    final range = maxV - minV;
+    if (range == 0) return;
+
+    final positivePaint = Paint()
+      ..color = Colors.greenAccent
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke;
+    final negativePaint = Paint()
+      ..color = Colors.redAccent
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke;
+
+    // Draw zero line
+    if (minV < 0 && maxV > 0) {
+      final zy = size.height - ((0 - minV) / range) * size.height;
+      canvas.drawLine(Offset(0, zy), Offset(size.width, zy),
+          Paint()..color = Colors.white12..strokeWidth = 0.5);
+    }
+
+    final path = Path();
+    for (var i = 0; i < data.length; i++) {
+      final x = i / (data.length - 1) * size.width;
+      final y = size.height - ((data[i] - minV) / range) * size.height;
+      i == 0 ? path.moveTo(x, y) : path.lineTo(x, y);
+    }
+    canvas.drawPath(path, data.last >= 0 ? positivePaint : negativePaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _BudgetSparklinePainter old) =>
+      old.data != data;
 }
 
 class _SatisfactionBar extends StatelessWidget {

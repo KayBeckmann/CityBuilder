@@ -31,6 +31,7 @@ class GameModel {
     this.approvalRating = 0.5,
     this.loan = 0.0,
     this.infraStats = const InfraStats(),
+    this.budgetHistory = const [],
   });
 
   final TileMap tileMap;
@@ -43,6 +44,7 @@ class GameModel {
   final double approvalRating;
   final double loan;
   final InfraStats infraStats;
+  final List<double> budgetHistory;
 
   static const double loanInterestRate = 0.005; // 0.5% per tick
   static const double maxLoan = 50000.0;
@@ -68,6 +70,7 @@ class GameModel {
     double? approvalRating,
     double? loan,
     InfraStats? infraStats,
+    List<double>? budgetHistory,
   }) =>
       GameModel(
         tileMap: tileMap ?? this.tileMap,
@@ -80,5 +83,6 @@ class GameModel {
         approvalRating: approvalRating ?? this.approvalRating,
         loan: loan ?? this.loan,
         infraStats: infraStats ?? this.infraStats,
+        budgetHistory: budgetHistory ?? this.budgetHistory,
       );
 }

@@ -138,14 +138,21 @@ class GameNotifier extends Notifier<GameModel> {
     final prevApproval = state.approvalRating;
     final loanInterest = state.loan * GameModel.loanInterestRate;
 
+    final newBudget = state.budget + economy.netBalance - loanInterest;
+    final newHistory = [...state.budgetHistory, newBudget];
+    final budgetHistory = newHistory.length > 20
+        ? newHistory.sublist(newHistory.length - 20)
+        : newHistory;
+
     state = state.copyWith(
       tick: state.tick + 1,
-      budget: state.budget + economy.netBalance - loanInterest,
+      budget: newBudget,
       lastEconomy: economy,
       population: newPopulation,
       satisfaction: newSatisfaction,
       approvalRating: approval,
       infraStats: _lastInfraStats,
+      budgetHistory: budgetHistory,
     );
 
     _checkMilestones(prevPop, newPopulation.total, prevBudget, prevApproval, approval);
