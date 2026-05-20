@@ -45,6 +45,14 @@ class EconomyResult {
 
 const double _baseIncomePerCapacity = 5.0;
 
+// Maintenance costs per tick for infrastructure
+const double _roadMaintenance = 0.5;
+const double _powerLineMaintenance = 0.25;
+const double _pipeMaintenance = 0.25;
+const double _powerPlantMaintenance = 5.0;
+const double _waterTowerMaintenance = 4.0;
+const double _parkMaintenance = 1.0;
+
 EconomyResult calculateEconomy({
   required TileMap tileMap,
   required TaxRates taxRates,
@@ -64,6 +72,14 @@ EconomyResult calculateEconomy({
         taxIncome += level.capacity * _baseIncomePerCapacity * rate;
         operatingCosts += level.operatingCost;
       }
+
+      // Infrastructure maintenance
+      if (data.hasRoad) operatingCosts += _roadMaintenance;
+      if (data.hasPowerLine) operatingCosts += _powerLineMaintenance;
+      if (data.hasPipe) operatingCosts += _pipeMaintenance;
+      if (data.hasPowerPlant) operatingCosts += _powerPlantMaintenance;
+      if (data.hasWaterTower) operatingCosts += _waterTowerMaintenance;
+      if (data.hasPark) operatingCosts += _parkMaintenance;
     }
   }
 
