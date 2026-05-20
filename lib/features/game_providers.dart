@@ -271,9 +271,44 @@ class GameNotifier extends Notifier<GameModel> {
 
   void _triggerRandomEvent(NotificationQueue q) {
     if (state.population.total < 10) return;
+
+    // 15% chance of building fire event
+    if (_rng.nextDouble() < 0.15) {
+      _triggerFireEvent(q);
+      return;
+    }
+
     final event = _events[_rng.nextInt(_events.length)];
     state = state.copyWith(budget: state.budget + event.budget);
     q.push(CityNotification(message: event.msg, isWarning: event.warn));
+  }
+
+  void _triggerFireEvent(NotificationQueue q) {
+    // Find all tiles with buildings
+    final buildings = <WorldPosition>[];
+    final tileMap = state.tileMap;
+    for (var row = 0; row < tileMap.height; row++) {
+      for (var col = 0; col < tileMap.width; col++) {
+        final pos = (col: col, row: row);
+        if (tileMap.getData(pos).buildingLevel.hasBuilding) buildings.add(pos);
+      }
+    }
+    if (buildings.isEmpty) return;
+
+    final target = buildings[_rng.nextInt(buildings.length)];
+    final data = tileMap.getData(target);
+    final zoneName = switch (data.zone) {
+      ZoneType.residential => 'Wohngebiet',
+      ZoneType.commercial => 'Gewerbe',
+      ZoneType.industrial => 'Industrie',
+      null => 'Gebäude',
+    };
+    tileMap.setBuildingLevel(target, BuildingLevel.empty);
+    state = state.copyWith(budget: state.budget - 600);
+    q.push(CityNotification(
+      message: 'Brand im $zoneName! Gebäude zerstört, Schaden: \$600',
+      isWarning: true,
+    ));
   }
 
   (SatisfactionFactors, InfraStats) _computeSatisfaction(
