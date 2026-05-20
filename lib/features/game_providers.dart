@@ -312,6 +312,7 @@ class GameNotifier extends Notifier<GameModel> {
       parks: parkCount,
       policeStations: policeCount,
       hospitals: hospitalCount,
+      schools: schoolCount,
     );
 
     if (buildings == 0) {

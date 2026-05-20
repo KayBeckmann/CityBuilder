@@ -127,6 +127,13 @@ class TileInfoPanel extends StatelessWidget {
               icon: Icons.local_hospital_outlined,
               activeColor: Color(0xFFE53935),
             ),
+          if (data.hasSchool)
+            const _InfraRow(
+              label: 'Schule',
+              active: true,
+              icon: Icons.school_outlined,
+              activeColor: Color(0xFFFF9800),
+            ),
         ],
       ),
     );
