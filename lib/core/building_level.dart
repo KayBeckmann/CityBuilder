@@ -6,6 +6,13 @@ enum BuildingLevel {
 
   bool get hasBuilding => this != BuildingLevel.empty;
 
+  String get label => switch (this) {
+        BuildingLevel.empty => 'Leer',
+        BuildingLevel.small => 'Klein',
+        BuildingLevel.medium => 'Mittel',
+        BuildingLevel.large => 'Groß',
+      };
+
   double get operatingCost => switch (this) {
         BuildingLevel.empty => 0,
         BuildingLevel.small => 10,

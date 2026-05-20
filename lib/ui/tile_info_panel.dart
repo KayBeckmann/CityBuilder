@@ -54,7 +54,7 @@ class TileInfoPanel extends StatelessWidget {
           if (data.zone != null)
             _InfoRow(label: 'Zone', value: data.zone!.fullLabel),
           if (data.buildingLevel.hasBuilding)
-            _InfoRow(label: 'Gebäude', value: data.buildingLevel.name),
+            _InfoRow(label: 'Gebäude', value: data.buildingLevel.label),
           if (data.resource != null)
             _InfoRow(label: 'Rohstoff', value: data.resource!.name),
           if (data.zone != null)

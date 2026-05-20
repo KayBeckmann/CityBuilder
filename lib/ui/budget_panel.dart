@@ -33,8 +33,8 @@ class BudgetPanel extends ConsumerWidget {
           // Header
           Row(
             children: [
-              const Text('Finanzen',
-                  style: TextStyle(
+              Text(model.cityName,
+                  style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w700,
                       fontSize: 13)),
