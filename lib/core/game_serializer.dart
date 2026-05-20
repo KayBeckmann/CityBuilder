@@ -29,6 +29,7 @@ class GameSerializer {
           if (data.hasRoad) 'rd': 1,
           if (data.hasPowerLine) 'pl': 1,
           if (data.hasPipe) 'pp': 1,
+          if (data.hasPowerPlant) 'pw': 1,
         });
       }
       tiles.add(rowList);
@@ -83,6 +84,7 @@ class GameSerializer {
         if (cell.containsKey('rd')) tileMap.setRoad(pos);
         if (cell.containsKey('pl')) tileMap.setPowerLine(pos);
         if (cell.containsKey('pp')) tileMap.setPipe(pos);
+        if (cell.containsKey('pw')) tileMap.setPowerPlant(pos);
       }
     }
 

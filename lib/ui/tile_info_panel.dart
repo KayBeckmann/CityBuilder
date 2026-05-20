@@ -77,6 +77,13 @@ class TileInfoPanel extends StatelessWidget {
             icon: Icons.water_outlined,
             activeColor: const Color(0xFF42A5F5),
           ),
+          if (data.hasPowerPlant)
+            const _InfraRow(
+              label: 'Kraftwerk',
+              active: true,
+              icon: Icons.power_outlined,
+              activeColor: Color(0xFFFFCC02),
+            ),
         ],
       ),
     );

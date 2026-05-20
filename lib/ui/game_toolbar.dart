@@ -25,6 +25,7 @@ class ToolPalette extends StatelessWidget {
     ],
     [ToolType.demolishZone, ToolType.demolishAll],
     [
+      ToolType.powerPlant,
       ToolType.road,
       ToolType.powerLine,
       ToolType.pipe,

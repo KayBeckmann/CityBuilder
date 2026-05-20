@@ -22,11 +22,14 @@ class TileMapComponent extends Component with HasGameReference {
     ..strokeWidth = _borderWidth;
 
   static final _roadPaint = Paint()..color = const Color(0xFF555555);
+  static final _roadEdgePaint = Paint()..color = const Color(0xFF444444);
   static final _powerLinePaint = Paint()
     ..color = const Color(0xFFFFEE58)
     ..strokeWidth = 1.5
     ..style = PaintingStyle.stroke;
   static final _pipePaint = Paint()..color = const Color(0xFF1565C0);
+  static final _powerPlantPaint = Paint()..color = const Color(0xFFFFCC02);
+  static final _powerPlantBgPaint = Paint()..color = const Color(0xFF333300);
 
   // Zone tints (shown when no overlay, no building sprite)
   static final _zoneTints = {
@@ -108,11 +111,16 @@ class TileMapComponent extends Component with HasGameReference {
 
         // ── Infrastructure layer ──────────────────────────────────────
         if (data.hasRoad) {
-          // Road: inset gray fill (keep border visible)
-          canvas.drawRect(
-            rect.deflate(1),
-            _roadPaint,
-          );
+          if (!data.buildingLevel.hasBuilding) {
+            // Full road fill when no building
+            canvas.drawRect(rect.deflate(1), _roadPaint);
+          } else {
+            // Small road strip at bottom when building is present
+            canvas.drawRect(
+              Rect.fromLTWH(rect.left + 1, rect.bottom - 4, rect.width - 2, 3),
+              _roadEdgePaint,
+            );
+          }
         }
         if (data.hasPowerLine) {
           // Power line: yellow cross from center to edges
@@ -127,6 +135,22 @@ class TileMapComponent extends Component with HasGameReference {
             Rect.fromLTWH(rect.right - 5, rect.bottom - 5, 4, 4),
             _pipePaint,
           );
+        }
+        if (data.hasPowerPlant) {
+          // Power plant: dark background + lightning bolt indicator
+          canvas.drawRect(rect.deflate(1), _powerPlantBgPaint);
+          final cx = rect.center.dx;
+          final cy = rect.center.dy;
+          // Draw a simple "⚡" shape
+          final path = Path()
+            ..moveTo(cx + 3, rect.top + 4)
+            ..lineTo(cx - 2, cy)
+            ..lineTo(cx + 1, cy)
+            ..lineTo(cx - 3, rect.bottom - 4)
+            ..lineTo(cx + 3, cy + 2)
+            ..lineTo(cx - 1, cy + 2)
+            ..close();
+          canvas.drawPath(path, _powerPlantPaint);
         }
 
         // ── Overlay heatmap ──────────────────────────────────────────

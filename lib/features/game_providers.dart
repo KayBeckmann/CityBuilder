@@ -182,14 +182,16 @@ class GameNotifier extends Notifier<GameModel> {
     int commercial,
     int industrial,
   ) {
+    final poweredTiles = tileMap.computePoweredTiles();
     var buildings = 0, withRoad = 0, withPower = 0, withPipe = 0;
     for (var row = 0; row < tileMap.height; row++) {
       for (var col = 0; col < tileMap.width; col++) {
-        final data = tileMap.getData((col: col, row: row));
+        final pos = (col: col, row: row);
+        final data = tileMap.getData(pos);
         if (data.zone != null && data.buildingLevel.hasBuilding) {
           buildings++;
           if (data.hasRoad) withRoad++;
-          if (data.hasPowerLine) withPower++;
+          if (poweredTiles.contains(pos)) withPower++;
           if (data.hasPipe) withPipe++;
         }
       }
@@ -234,6 +236,16 @@ class GameNotifier extends Notifier<GameModel> {
       budget: state.budget - repayAmount,
       loan: state.loan - repayAmount,
     );
+  }
+
+  bool placePowerPlant(WorldPosition pos) {
+    const cost = 5000.0;
+    if (state.budget < cost) return false;
+    final tileMap = state.tileMap;
+    if (!tileMap.contains(pos) || tileMap.getData(pos).hasPowerPlant) return false;
+    tileMap.setPowerPlant(pos);
+    state = state.copyWith(budget: state.budget - cost);
+    return true;
   }
 
   bool placeRoad(WorldPosition pos) {

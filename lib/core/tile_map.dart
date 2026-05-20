@@ -14,6 +14,7 @@ class TileData {
     this.hasRoad = false,
     this.hasPowerLine = false,
     this.hasPipe = false,
+    this.hasPowerPlant = false,
   });
 
   TerrainType terrain;
@@ -24,6 +25,7 @@ class TileData {
   bool hasRoad;
   bool hasPowerLine;
   bool hasPipe;
+  bool hasPowerPlant;
 }
 
 class TileMap {
@@ -91,4 +93,41 @@ class TileMap {
     assert(pos.isValid(width, height));
     _tiles[pos.row][pos.col].hasPipe = value;
   }
+
+  void setPowerPlant(WorldPosition pos, {bool value = true}) {
+    assert(pos.isValid(width, height));
+    _tiles[pos.row][pos.col].hasPowerPlant = value;
+  }
+
+  Set<WorldPosition> computePoweredTiles() {
+    final plants = <WorldPosition>[];
+    final lines = <WorldPosition>{};
+    for (var row = 0; row < height; row++) {
+      for (var col = 0; col < width; col++) {
+        final pos = (col: col, row: row);
+        final data = _tiles[row][col];
+        if (data.hasPowerPlant) plants.add(pos);
+        if (data.hasPowerLine || data.hasPowerPlant) lines.add(pos);
+      }
+    }
+    if (plants.isEmpty) return const {};
+
+    final powered = <WorldPosition>{};
+    final queue = [...plants];
+    while (queue.isNotEmpty) {
+      final pos = queue.removeLast();
+      if (!powered.add(pos)) continue;
+      for (final n in _neighbors(pos)) {
+        if (!powered.contains(n) && lines.contains(n)) queue.add(n);
+      }
+    }
+    return powered;
+  }
+
+  List<WorldPosition> _neighbors(WorldPosition pos) => [
+        (col: pos.col - 1, row: pos.row),
+        (col: pos.col + 1, row: pos.row),
+        (col: pos.col, row: pos.row - 1),
+        (col: pos.col, row: pos.row + 1),
+      ].where((p) => p.isValid(width, height)).toList();
 }

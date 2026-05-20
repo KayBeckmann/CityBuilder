@@ -93,6 +93,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           _flashError('Nicht genug Budget!');
         }
 
+      case ToolType.powerPlant:
+        if (!notifier.placePowerPlant(tilePos)) _flashError('Nicht genug Budget!');
+
       case ToolType.road:
         if (!notifier.placeRoad(tilePos)) _flashError('Nicht genug Budget!');
 

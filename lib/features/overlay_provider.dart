@@ -20,6 +20,10 @@ Map<WorldPosition, double> computeOverlayValues(
 ) {
   if (overlay == OverlayType.none) return const {};
 
+  // Pre-compute powered tiles for the power overlay
+  final poweredTiles =
+      overlay == OverlayType.power ? tileMap.computePoweredTiles() : null;
+
   final result = <WorldPosition, double>{};
 
   for (var row = 0; row < tileMap.height; row++) {
@@ -40,7 +44,7 @@ Map<WorldPosition, double> computeOverlayValues(
             if (data.zone == ZoneType.commercial && data.buildingLevel.hasBuilding) v += 0.2;
             return v.clamp(0.0, 1.0);
           }(),
-        OverlayType.power => data.hasPowerLine
+        OverlayType.power => (poweredTiles?.contains(pos) ?? false)
             ? 1.0
             : (data.zone != null ? 0.15 : 0.0),
         OverlayType.water => data.hasPipe
