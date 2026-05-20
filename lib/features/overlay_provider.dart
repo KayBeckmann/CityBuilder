@@ -44,6 +44,16 @@ Map<WorldPosition, double> computeOverlayValues(
             var v = 0.5;
             if (data.zone == ZoneType.industrial && data.buildingLevel.hasBuilding) v -= 0.3;
             if (data.zone == ZoneType.commercial && data.buildingLevel.hasBuilding) v += 0.2;
+            if (data.hasPark) v += 0.3;
+            // Check adjacent parks for land value bonus
+            for (var d = -2; d <= 2; d++) {
+              for (var e = -2; e <= 2; e++) {
+                if (d == 0 && e == 0) continue;
+                final n = (col: pos.col + d, row: pos.row + e);
+                if (!n.isValid(tileMap.width, tileMap.height)) continue;
+                if (tileMap.getData(n).hasPark) v += 0.05;
+              }
+            }
             return v.clamp(0.0, 1.0);
           }(),
         OverlayType.power => (poweredTiles?.contains(pos) ?? false)
