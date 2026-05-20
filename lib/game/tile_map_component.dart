@@ -32,6 +32,8 @@ class TileMapComponent extends Component with HasGameReference {
   static final _powerPlantBgPaint = Paint()..color = const Color(0xFF333300);
   static final _waterTowerPaint = Paint()..color = const Color(0xFF00BCD4);
   static final _waterTowerBgPaint = Paint()..color = const Color(0xFF002030);
+  static final _parkPaint = Paint()..color = const Color(0xFF2E7D32);
+  static final _parkHighPaint = Paint()..color = const Color(0xFF4CAF50);
 
   // Zone tints (shown when no overlay, no building sprite)
   static final _zoneTints = {
@@ -109,6 +111,16 @@ class TileMapComponent extends Component with HasGameReference {
             if (tint != null) canvas.drawRect(rect, Paint()..color = tint);
             _drawZoneBorder(canvas, rect, zone);
           }
+        }
+
+        // ── Park ─────────────────────────────────────────────────────
+        if (data.hasPark) {
+          canvas.drawRect(rect, _parkPaint);
+          // Simple tree: circle on top of small rectangle
+          final cx = rect.center.dx;
+          final cy = rect.center.dy;
+          canvas.drawCircle(Offset(cx, cy - 3), 6, _parkHighPaint);
+          canvas.drawRect(Rect.fromLTWH(cx - 2, cy + 3, 4, 5), _parkHighPaint);
         }
 
         // ── Infrastructure layer ──────────────────────────────────────

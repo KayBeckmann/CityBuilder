@@ -213,10 +213,12 @@ class GameNotifier extends Notifier<GameModel> {
     final poweredTiles = tileMap.computePoweredTiles();
     final wateredTiles = tileMap.computeWateredTiles();
     var buildings = 0, withRoad = 0, withPower = 0, withWater = 0;
+    var parkCount = 0;
     for (var row = 0; row < tileMap.height; row++) {
       for (var col = 0; col < tileMap.width; col++) {
         final pos = (col: col, row: row);
         final data = tileMap.getData(pos);
+        if (data.hasPark) parkCount++;
         if (data.zone != null && data.buildingLevel.hasBuilding) {
           buildings++;
           if (data.hasRoad) withRoad++;
@@ -241,8 +243,8 @@ class GameNotifier extends Notifier<GameModel> {
     return SatisfactionFactors(
       employment: (employmentRatio * (0.5 + 0.5 * powerCov)).clamp(0.0, 1.0),
       housing: (0.3 + 0.7 * roadCov).clamp(0.0, 1.0),
-      // Base service score 0.3 so the city isn't dead without early infrastructure
-      services: (0.3 + 0.35 * powerCov + 0.35 * pipeCov).clamp(0.0, 1.0),
+      // Base service score 0.3 + park bonus (up to +0.2) + power/water
+      services: (0.3 + (parkCount * 0.01).clamp(0, 0.2) + 0.25 * powerCov + 0.25 * pipeCov).clamp(0.0, 1.0),
     );
   }
 
@@ -266,6 +268,20 @@ class GameNotifier extends Notifier<GameModel> {
       budget: state.budget - repayAmount,
       loan: state.loan - repayAmount,
     );
+  }
+
+  bool placePark(WorldPosition pos) {
+    const cost = 500.0;
+    if (state.budget < cost) return false;
+    final tileMap = state.tileMap;
+    if (!tileMap.contains(pos)) return false;
+    if (tileMap.get(pos) == TerrainType.water) return false;
+    if (tileMap.getData(pos).hasPark) return false;
+    tileMap.setPark(pos);
+    // Remove any existing zone
+    tileMap.setZone(pos, null);
+    state = state.copyWith(budget: state.budget - cost);
+    return true;
   }
 
   bool demolishAll(WorldPosition pos) {
@@ -357,8 +373,13 @@ class GameNotifier extends Notifier<GameModel> {
         final d = demand.forZone(zone);
         if (d > 0.25 && data.buildingLevel != BuildingLevel.large) {
           final next = data.buildingLevel.next;
-          // Roads are required to grow beyond small buildings
           if (next != BuildingLevel.small && !data.hasRoad) continue;
+
+          // High taxes slow development: >15% tax adds 50% skip chance per 5% over threshold
+          final taxRate = state.taxRates.forZone(zone);
+          final taxPenalty = ((taxRate - 0.15) / 0.05).clamp(0, 1);
+          if (taxPenalty > 0 && _rng.nextDouble() < taxPenalty * 0.5) continue;
+
           tileMap.setBuildingLevel(pos, next);
         } else if (d <= 0.0 && data.buildingLevel.hasBuilding) {
           tileMap.setBuildingLevel(pos, BuildingLevel.empty);

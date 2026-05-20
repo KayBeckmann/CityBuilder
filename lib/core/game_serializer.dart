@@ -31,6 +31,7 @@ class GameSerializer {
           if (data.hasPipe) 'pp': 1,
           if (data.hasPowerPlant) 'pw': 1,
           if (data.hasWaterTower) 'wt': 1,
+          if (data.hasPark) 'pk': 1,
         });
       }
       tiles.add(rowList);
@@ -87,6 +88,7 @@ class GameSerializer {
         if (cell.containsKey('pp')) tileMap.setPipe(pos);
         if (cell.containsKey('pw')) tileMap.setPowerPlant(pos);
         if (cell.containsKey('wt')) tileMap.setWaterTower(pos);
+        if (cell.containsKey('pk')) tileMap.setPark(pos);
       }
     }
 

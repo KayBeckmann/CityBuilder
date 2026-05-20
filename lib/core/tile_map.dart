@@ -16,6 +16,7 @@ class TileData {
     this.hasPipe = false,
     this.hasPowerPlant = false,
     this.hasWaterTower = false,
+    this.hasPark = false,
   });
 
   TerrainType terrain;
@@ -28,6 +29,7 @@ class TileData {
   bool hasPipe;
   bool hasPowerPlant;
   bool hasWaterTower;
+  bool hasPark;
 }
 
 class TileMap {
@@ -65,6 +67,7 @@ class TileMap {
 
   void setZone(WorldPosition pos, ZoneType? zone) {
     assert(pos.isValid(width, height), 'Position out of bounds: $pos');
+    if (zone != null && _tiles[pos.row][pos.col].hasPark) return;
     _tiles[pos.row][pos.col].zone = zone;
     if (zone == null) {
       _tiles[pos.row][pos.col].buildingLevel = BuildingLevel.empty;
@@ -106,6 +109,11 @@ class TileMap {
     _tiles[pos.row][pos.col].hasWaterTower = value;
   }
 
+  void setPark(WorldPosition pos, {bool value = true}) {
+    assert(pos.isValid(width, height));
+    _tiles[pos.row][pos.col].hasPark = value;
+  }
+
   void clearAll(WorldPosition pos) {
     assert(pos.isValid(width, height));
     final t = _tiles[pos.row][pos.col];
@@ -116,6 +124,7 @@ class TileMap {
     t.hasPipe = false;
     t.hasPowerPlant = false;
     t.hasWaterTower = false;
+    t.hasPark = false;
   }
 
   Set<WorldPosition> computeWateredTiles() {
