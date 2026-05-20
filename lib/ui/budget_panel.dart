@@ -70,6 +70,13 @@ class BudgetPanel extends ConsumerWidget {
             value: '${eco.netBalance >= 0 ? "+" : ""}\$${eco.netBalance.toStringAsFixed(1)}',
             color: eco.netBalance >= 0 ? Colors.greenAccent : Colors.redAccent,
           ),
+          if (eco.netBalance < 0) ...[
+            _Row(
+              label: 'Insolvenz in',
+              value: _ticksToBankruptcy(model.budget, eco.netBalance),
+              color: Colors.orangeAccent,
+            ),
+          ],
           const SizedBox(height: 8),
           const Divider(color: Colors.white12, height: 1),
           const SizedBox(height: 8),
@@ -195,6 +202,14 @@ class _Row extends StatelessWidget {
           ],
         ),
       );
+}
+
+String _ticksToBankruptcy(double budget, double netPerTick) {
+  if (netPerTick >= 0) return '∞';
+  final ticks = ((budget - GameModel.gameOverBudgetThreshold) / (-netPerTick)).ceil();
+  if (ticks <= 0) return 'jetzt!';
+  if (ticks > 9999) return '>9999 Ticks';
+  return '~$ticks Ticks';
 }
 
 class _LoanButton extends StatelessWidget {

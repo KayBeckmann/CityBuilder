@@ -17,9 +17,21 @@ class NewGameDialog extends ConsumerStatefulWidget {
   ConsumerState<NewGameDialog> createState() => _NewGameDialogState();
 }
 
+enum Difficulty {
+  easy(200000, 'Einfach', '\$200.000 Start'),
+  normal(100000, 'Normal', '\$100.000 Start'),
+  hard(50000, 'Schwer', '\$50.000 Start');
+
+  const Difficulty(this.budget, this.label, this.description);
+  final double budget;
+  final String label;
+  final String description;
+}
+
 class _NewGameDialogState extends ConsumerState<NewGameDialog> {
   final _seedCtrl = TextEditingController(text: '42');
   MapSize _size = MapSize.medium;
+  Difficulty _difficulty = Difficulty.normal;
   bool _generating = false;
 
   @override
@@ -31,7 +43,11 @@ class _NewGameDialogState extends ConsumerState<NewGameDialog> {
   Future<void> _start() async {
     final seed = int.tryParse(_seedCtrl.text.trim()) ?? 42;
     setState(() => _generating = true);
-    ref.read(gameProvider.notifier).newGame(seed: seed, size: _size);
+    ref.read(gameProvider.notifier).newGame(
+      seed: seed,
+      size: _size,
+      startingBudget: _difficulty.budget,
+    );
     if (mounted) Navigator.of(context).pop();
   }
 
@@ -72,6 +88,43 @@ class _NewGameDialogState extends ConsumerState<NewGameDialog> {
                 ),
               ),
             ),
+            const SizedBox(height: 16),
+            _Label('Schwierigkeitsgrad'),
+            const SizedBox(height: 6),
+            Row(children: Difficulty.values.map((d) {
+              final isActive = _difficulty == d;
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => _difficulty = d),
+                  child: Container(
+                    margin: const EdgeInsets.only(right: 4),
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                    decoration: BoxDecoration(
+                      color: isActive
+                          ? const Color(0xFF4CAF50).withAlpha(40)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: isActive
+                            ? const Color(0xFF4CAF50)
+                            : Colors.white24,
+                      ),
+                    ),
+                    child: Column(children: [
+                      Text(d.label,
+                          style: TextStyle(
+                            color: isActive ? const Color(0xFF4CAF50) : Colors.white70,
+                            fontSize: 12,
+                            fontWeight: isActive ? FontWeight.w700 : FontWeight.normal,
+                          )),
+                      Text(d.description,
+                          style: const TextStyle(
+                              color: Colors.white38, fontSize: 9)),
+                    ]),
+                  ),
+                ),
+              );
+            }).toList()),
             const SizedBox(height: 16),
             _Label('Kartengröße'),
             const SizedBox(height: 6),

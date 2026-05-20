@@ -42,12 +42,16 @@ class GameNotifier extends Notifier<GameModel> {
     );
   }
 
-  void newGame({required int seed, required MapSize size}) {
+  void newGame({
+    required int seed,
+    required MapSize size,
+    double? startingBudget,
+  }) {
     const generator = MapGenerator();
     final tileMap = generator.generate(seed: seed, size: size);
     state = GameModel(
       tileMap: tileMap,
-      budget: GameModel.startingBudget,
+      budget: startingBudget ?? GameModel.startingBudget,
       tick: 0,
     );
   }
