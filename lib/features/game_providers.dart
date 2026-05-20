@@ -56,6 +56,9 @@ class GameNotifier extends Notifier<GameModel> {
     _notifiedFirstBuilding = false;
     _notifiedFirstLarge = false;
     _lastInfraStats = const InfraStats();
+    _lowEmploymentTicks = 0;
+    _lowHousingTicks = 0;
+    _lowServicesTicks = 0;
     const generator = MapGenerator();
     final tileMap = generator.generate(seed: seed, size: size);
     state = GameModel(
@@ -182,6 +185,9 @@ class GameNotifier extends Notifier<GameModel> {
   InfraStats _lastInfraStats = const InfraStats();
   bool _notifiedFirstBuilding = false;
   bool _notifiedFirstLarge = false;
+  int _lowEmploymentTicks = 0;
+  int _lowHousingTicks = 0;
+  int _lowServicesTicks = 0;
   static const _popMilestones = [50, 100, 250, 500, 1000, 2500, 5000, 10000];
 
   void _checkMilestones(
@@ -218,6 +224,31 @@ class GameNotifier extends Notifier<GameModel> {
       q.push(CityNotification(
         message: 'Niedrige Zustimmung! Bürger sind unzufrieden.',
         isWarning: true,
+      ));
+    }
+
+    // Contextual hints when satisfaction stays low for multiple ticks
+    final sat = state.satisfaction;
+    _lowEmploymentTicks = sat.employment < 0.3 ? _lowEmploymentTicks + 1 : 0;
+    _lowHousingTicks = sat.housing < 0.3 ? _lowHousingTicks + 1 : 0;
+    _lowServicesTicks = sat.services < 0.3 ? _lowServicesTicks + 1 : 0;
+
+    if (_lowEmploymentTicks == 5) {
+      q.push(CityNotification(
+        message: 'Tipp: Gewerbe- und Industriezonen + Strom erhöhen Beschäftigung.',
+        isWarning: false,
+      ));
+    }
+    if (_lowHousingTicks == 5) {
+      q.push(CityNotification(
+        message: 'Tipp: Straßen neben Wohnzonen verbessern die Wohnqualität.',
+        isWarning: false,
+      ));
+    }
+    if (_lowServicesTicks == 5) {
+      q.push(CityNotification(
+        message: 'Tipp: Parks, Polizei, Krankenhaus und Infrastruktur verbessern Services.',
+        isWarning: false,
       ));
     }
 
@@ -293,7 +324,7 @@ class GameNotifier extends Notifier<GameModel> {
 
     return (
       SatisfactionFactors(
-        employment: (employmentRatio * (0.5 + 0.5 * powerCov)).clamp(0.0, 1.0),
+        employment: (employmentRatio * (0.5 + 0.5 * powerCov) + (hospitalCount * 0.02).clamp(0, 0.1)).clamp(0.0, 1.0),
         housing: (0.3 + 0.7 * roadCov).clamp(0.0, 1.0),
         services: (0.3 + (parkCount * 0.01).clamp(0, 0.10) + (policeCount * 0.03).clamp(0, 0.10) + (hospitalCount * 0.05).clamp(0, 0.10) + 0.2 * powerCov + 0.2 * pipeCov).clamp(0.0, 1.0),
       ),
