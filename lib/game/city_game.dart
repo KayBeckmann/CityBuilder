@@ -10,14 +10,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class CityGame extends FlameGame
-    with ScrollDetector, ScaleDetector, DragCallbacks {
-  CityGame()
-      : super(
-          camera: CameraComponent.withFixedResolution(
-            width: 1280,
-            height: 720,
-          ),
-        );
+    with ScrollDetector, ScaleDetector, DragCallbacks, TapCallbacks {
+  CityGame({void Function(WorldPosition pos)? onTileTap})
+      : _onTileTap = onTileTap;
+
+  void Function(WorldPosition pos)? _onTileTap;
+
+  /// Override tap callback after construction (set by GameScreen).
+  set onTileTapOverride(void Function(WorldPosition pos)? fn) {
+    _onTileTap = fn;
+  }
 
   TileMapComponent? _tileMapComponent;
 
@@ -25,13 +27,17 @@ class CityGame extends FlameGame
   static const double _maxZoom = 4.0;
   double _startZoom = 1.0;
 
+  // Drag-detection: if moved more than threshold → pan, not tap
+  Vector2? _tapDownPosition;
+  static const double _tapThreshold = 8.0;
+
   @override
   Color backgroundColor() => const Color(0xFF1a1a2e);
 
   @override
   Future<void> onLoad() async {
     await super.onLoad();
-    SpriteRegistry.I.schedulePreload(); // fire-and-forget, non-blocking
+    SpriteRegistry.I.schedulePreload();
 
     if (kDebugMode) {
       camera.viewport.add(
@@ -62,6 +68,8 @@ class CityGame extends FlameGame
     );
   }
 
+  // ── Scroll / Scale ────────────────────────────────────────────────────────
+
   @override
   void onScroll(PointerScrollInfo info) {
     final zoom = camera.viewfinder.zoom;
@@ -80,8 +88,46 @@ class CityGame extends FlameGame
     camera.viewfinder.zoom = newZoom;
   }
 
+  // ── Drag (pan) ────────────────────────────────────────────────────────────
+
+  @override
+  void onDragStart(DragStartEvent event) {
+    super.onDragStart(event);
+    _tapDownPosition = event.localPosition.clone();
+  }
+
   @override
   void onDragUpdate(DragUpdateEvent event) {
     camera.viewfinder.position -= event.localDelta / camera.viewfinder.zoom;
   }
+
+  @override
+  void onDragEnd(DragEndEvent event) {
+    super.onDragEnd(event);
+    _tapDownPosition = null;
+  }
+
+  // ── Tap (place tool) ─────────────────────────────────────────────────────
+
+  @override
+  void onTapDown(TapDownEvent event) {
+    _tapDownPosition = event.localPosition.clone();
+  }
+
+  @override
+  void onTapUp(TapUpEvent event) {
+    if (_onTileTap == null) return;
+    final down = _tapDownPosition;
+    if (down != null) {
+      final delta = (event.localPosition - down).length;
+      if (delta > _tapThreshold) return; // was a drag
+    }
+    final worldPos = camera.viewfinder.parentToLocal(event.localPosition);
+    final tilePos = screenToWorld(worldPos);
+    if (_tileMapComponent != null && tileMap.contains(tilePos)) {
+      _onTileTap!(tilePos);
+    }
+  }
+
+  TileMap get tileMap => _tileMapComponent!.tileMap;
 }

@@ -1,9 +1,17 @@
+import 'dart:async';
+
 import 'package:city_builder/core/audio_manager.dart';
 import 'package:city_builder/core/overlay_type.dart';
 import 'package:city_builder/features/game_providers.dart';
 import 'package:city_builder/features/overlay_provider.dart';
+import 'package:city_builder/features/time_provider.dart';
+import 'package:city_builder/features/tool_provider.dart';
 import 'package:city_builder/game/city_game.dart';
+import 'package:city_builder/ui/budget_panel.dart';
+import 'package:city_builder/ui/game_toolbar.dart';
+import 'package:city_builder/ui/new_game_dialog.dart';
 import 'package:city_builder/ui/settings_screen.dart';
+import 'package:city_builder/ui/tile_info_panel.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,9 +26,119 @@ class GameScreen extends ConsumerStatefulWidget {
 }
 
 class _GameScreenState extends ConsumerState<GameScreen> {
+  Timer? _tickTimer;
+  var _showBudget = false;
+  var _showTileInfo = false;
+  var _tileInfoPos = (col: 0, row: 0);
+
   @override
   void initState() {
     super.initState();
+
+    // Wire tile-tap callback into the game
+    widget.game.onTileTapOverride = _handleTileTap;
+
+    // Load initial map
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final model = ref.read(gameProvider);
+      widget.game.loadMap(model.tileMap);
+      // Show new-game dialog on first run
+      if (mounted) NewGameDialog.show(context);
+    });
+  }
+
+  @override
+  void dispose() {
+    _tickTimer?.cancel();
+    super.dispose();
+  }
+
+  void _handleTileTap(tilePos) {
+    final tool = ref.read(toolProvider);
+    final notifier = ref.read(gameProvider.notifier);
+    final model = ref.read(gameProvider);
+
+    switch (tool) {
+      case ToolType.inspect:
+        setState(() {
+          _showTileInfo = true;
+          _tileInfoPos = tilePos;
+        });
+        return;
+
+      case ToolType.zoneResidential:
+      case ToolType.zoneCommercial:
+      case ToolType.zoneIndustrial:
+        final zone = tool.zone;
+        if (zone != null) {
+          final ok = notifier.setZone(tilePos, zone);
+          if (!ok) _flashError('Nicht genug Budget!');
+        }
+
+      case ToolType.demolishZone:
+        notifier.setZone(tilePos, null);
+
+      case ToolType.demolishAll:
+        if (model.budget >= 50) {
+          notifier.setZone(tilePos, null);
+          notifier.spendBudget(50);
+        } else {
+          _flashError('Nicht genug Budget!');
+        }
+
+      case ToolType.road:
+      case ToolType.powerLine:
+      case ToolType.pipe:
+        // Infrastructure placement — deducts cost
+        if (model.budget >= tool.costPerTile) {
+          notifier.spendBudget(tool.costPerTile);
+        } else {
+          _flashError('Nicht genug Budget!');
+        }
+    }
+
+    // Refresh overlay
+    _refreshOverlay();
+  }
+
+  void _refreshOverlay() {
+    final overlay = ref.read(overlayProvider);
+    if (overlay != OverlayType.none) {
+      final tileMap = ref.read(gameProvider).tileMap;
+      widget.game.updateOverlay(overlay, computeOverlayValues(tileMap, overlay));
+    }
+  }
+
+  void _flashError(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        duration: const Duration(seconds: 1),
+        backgroundColor: Colors.red[900],
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.only(bottom: 80, left: 16, right: 16),
+      ),
+    );
+  }
+
+  void _handleSpeedChange(GameSpeed speed) {
+    ref.read(timeProvider.notifier).setSpeed(speed);
+    _tickTimer?.cancel();
+    final interval = speed.intervalMs;
+    if (interval != null) {
+      _tickTimer = Timer.periodic(
+        Duration(milliseconds: interval),
+        (_) {
+          ref.read(gameProvider.notifier).tick();
+          _refreshOverlay();
+          _syncMapToGame();
+        },
+      );
+    }
+  }
+
+  void _syncMapToGame() {
     final model = ref.read(gameProvider);
     widget.game.loadMap(model.tileMap);
   }
@@ -28,34 +146,147 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   @override
   Widget build(BuildContext context) {
     final budget = ref.watch(gameProvider.select((m) => m.budget));
-    final tick = ref.watch(gameProvider.select((m) => m.tick));
-    final population = ref.watch(gameProvider.select((m) => m.population.total));
-    final approval = ref.watch(gameProvider.select((m) => m.approvalRating));
+    final model = ref.watch(gameProvider);
+    final population = model.population.total;
+    final approval = model.approvalRating;
     final overlay = ref.watch(overlayProvider);
+    final tool = ref.watch(toolProvider);
+    final speed = ref.watch(timeProvider);
     final audioMuted = ref.watch(audioProvider.select((s) => s.muted));
 
+    // Sync overlay changes to game
     ref.listen(overlayProvider, (_, next) {
       final tileMap = ref.read(gameProvider).tileMap;
-      final values = computeOverlayValues(tileMap, next);
-      widget.game.updateOverlay(next, values);
+      widget.game.updateOverlay(next, computeOverlayValues(tileMap, next));
+    });
+
+    // Sync new game map to Flame
+    ref.listen(gameProvider.select((m) => m.tick), (prev, next) {
+      if (next == 0) {
+        final m = ref.read(gameProvider);
+        widget.game.loadMap(m.tileMap);
+      }
     });
 
     return Scaffold(
       body: Stack(
         children: [
+          // ── Flame Canvas ──────────────────────────────────────────────
           GameWidget(game: widget.game),
-          _HudOverlay(
-            budget: budget,
-            tick: tick,
-            population: population,
-            approval: approval,
-            activeOverlay: overlay,
-            audioMuted: audioMuted,
-            onOverlayChanged: (type) => ref.read(overlayProvider.notifier).toggle(type),
-            onMuteToggle: () => ref.read(audioProvider.notifier).toggleMute(),
-            onSettingsTap: () => Navigator.push(
-              context,
-              MaterialPageRoute<void>(builder: (_) => const SettingsScreen()),
+
+          // ── HUD ──────────────────────────────────────────────────────
+          SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Top bar
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _HudBar(
+                      budget: budget,
+                      tick: model.tick,
+                      population: population,
+                      approval: approval,
+                      onBudgetTap: () =>
+                          setState(() => _showBudget = !_showBudget),
+                    ),
+                    const Spacer(),
+                    Padding(
+                      padding:
+                          const EdgeInsets.only(top: 8, right: 8),
+                      child: Row(children: [
+                        _HudIconButton(
+                          icon: Icons.add_circle_outline,
+                          onTap: () => NewGameDialog.show(context),
+                          tooltip: 'Neues Spiel',
+                        ),
+                        const SizedBox(width: 4),
+                        _HudIconButton(
+                          icon: audioMuted
+                              ? Icons.volume_off
+                              : Icons.volume_up_outlined,
+                          onTap: () => ref
+                              .read(audioProvider.notifier)
+                              .toggleMute(),
+                          tooltip: audioMuted ? 'Ton ein' : 'Stummschalten',
+                        ),
+                        const SizedBox(width: 4),
+                        _HudIconButton(
+                          icon: Icons.settings_outlined,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                                builder: (_) =>
+                                    const SettingsScreen()),
+                          ),
+                          tooltip: 'Einstellungen',
+                        ),
+                      ]),
+                    ),
+                  ],
+                ),
+
+                // Budget panel (expandable)
+                if (_showBudget)
+                  BudgetPanel(
+                    model: model,
+                    onClose: () => setState(() => _showBudget = false),
+                  ),
+
+                // Tile info (inspect tool)
+                if (_showTileInfo) ...[
+                  TileInfoPanel(
+                    position: _tileInfoPos,
+                    data: model.tileMap.getData(_tileInfoPos),
+                    onClose: () =>
+                        setState(() => _showTileInfo = false),
+                  ),
+                ],
+
+                const Spacer(),
+
+                // Overlay toolbar
+                _OverlayToolbar(
+                  active: overlay,
+                  onChanged: (type) =>
+                      ref.read(overlayProvider.notifier).toggle(type),
+                ),
+                if (overlay != OverlayType.none)
+                  _OverlayLegend(overlay: overlay),
+              ],
+            ),
+          ),
+
+          // ── Bottom chrome ─────────────────────────────────────────────
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Time controls
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 8, bottom: 4),
+                      child: TimeControls(
+                        speed: speed,
+                        onSpeedChanged: _handleSpeedChange,
+                      ),
+                    ),
+                  ),
+                  // Tool palette
+                  ToolPalette(
+                    activeTool: tool,
+                    onToolSelected: (t) {
+                      ref.read(toolProvider.notifier).select(t);
+                      setState(() => _showTileInfo = false);
+                    },
+                    budget: budget,
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -64,75 +295,73 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 }
 
-// ── HUD ──────────────────────────────────────────────────────────────────────
+// ── HUD widgets ───────────────────────────────────────────────────────────────
 
-class _HudOverlay extends StatelessWidget {
-  const _HudOverlay({
+class _HudBar extends StatelessWidget {
+  const _HudBar({
     required this.budget,
     required this.tick,
     required this.population,
     required this.approval,
-    required this.activeOverlay,
-    required this.audioMuted,
-    required this.onOverlayChanged,
-    required this.onMuteToggle,
-    required this.onSettingsTap,
+    required this.onBudgetTap,
   });
 
   final double budget;
   final int tick;
   final int population;
   final double approval;
-  final OverlayType activeOverlay;
-  final bool audioMuted;
-  final ValueChanged<OverlayType> onOverlayChanged;
-  final VoidCallback onMuteToggle;
-  final VoidCallback onSettingsTap;
+  final VoidCallback onBudgetTap;
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _HudBar(budget: budget, tick: tick, population: population, approval: approval),
-              const Spacer(),
-              Padding(
-                padding: const EdgeInsets.only(top: 8, right: 8),
-                child: Row(
-                  children: [
-                    _HudIconButton(
-                      icon: audioMuted ? Icons.volume_off : Icons.volume_up_outlined,
-                      onTap: onMuteToggle,
-                      tooltip: audioMuted ? 'Ton ein' : 'Stummschalten',
-                    ),
-                    const SizedBox(width: 4),
-                    _HudIconButton(
-                      icon: Icons.settings_outlined,
-                      onTap: onSettingsTap,
-                      tooltip: 'Einstellungen',
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const Spacer(),
-          _OverlayToolbar(active: activeOverlay, onChanged: onOverlayChanged),
+    final approvalColor = approval > 0.6
+        ? Colors.greenAccent
+        : approval > 0.35
+            ? Colors.orangeAccent
+            : Colors.redAccent;
 
-          if (activeOverlay != OverlayType.none)
-            _OverlayLegend(overlay: activeOverlay),
-          const SizedBox(height: 8),
-        ],
+    return GestureDetector(
+      onTap: onBudgetTap,
+      child: Container(
+        margin: const EdgeInsets.all(8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.black54,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.account_balance_wallet,
+                color: Colors.greenAccent, size: 14),
+            const SizedBox(width: 4),
+            Text('\$${budget.toStringAsFixed(0)}',
+                style: const TextStyle(color: Colors.white, fontSize: 13)),
+            const SizedBox(width: 12),
+            const Icon(Icons.people,
+                color: Colors.lightBlueAccent, size: 14),
+            const SizedBox(width: 4),
+            Text('$population',
+                style: const TextStyle(color: Colors.white, fontSize: 13)),
+            const SizedBox(width: 12),
+            Icon(Icons.thumb_up_outlined,
+                color: approvalColor, size: 14),
+            const SizedBox(width: 4),
+            Text('${(approval * 100).toInt()}%',
+                style: TextStyle(color: approvalColor, fontSize: 13)),
+            const SizedBox(width: 12),
+            const Icon(Icons.access_time,
+                color: Colors.white38, size: 14),
+            const SizedBox(width: 4),
+            Text('T$tick',
+                style: const TextStyle(
+                    color: Colors.white38, fontSize: 13)),
+          ],
+        ),
       ),
     );
   }
 }
-
-// ── HUD Icon Button ───────────────────────────────────────────────────────────
 
 class _HudIconButton extends StatelessWidget {
   const _HudIconButton({
@@ -146,83 +375,21 @@ class _HudIconButton extends StatelessWidget {
   final String tooltip;
 
   @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: tooltip,
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            color: Colors.black54,
-            borderRadius: BorderRadius.circular(6),
+  Widget build(BuildContext context) => Tooltip(
+        message: tooltip,
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: Colors.black54,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Icon(icon, color: Colors.white70, size: 16),
           ),
-          child: Icon(icon, color: Colors.white70, size: 16),
         ),
-      ),
-    );
-  }
+      );
 }
-
-// ── Top HUD Bar ───────────────────────────────────────────────────────────────
-
-class _HudBar extends StatelessWidget {
-  const _HudBar({
-    required this.budget,
-    required this.tick,
-    required this.population,
-    required this.approval,
-  });
-
-  final double budget;
-  final int tick;
-  final int population;
-  final double approval;
-
-  @override
-  Widget build(BuildContext context) {
-    final approvalColor = approval > 0.6
-        ? Colors.greenAccent
-        : approval > 0.35
-            ? Colors.orangeAccent
-            : Colors.redAccent;
-
-    return Container(
-      margin: const EdgeInsets.all(8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.black54,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.account_balance_wallet, color: Colors.greenAccent, size: 14),
-          const SizedBox(width: 4),
-          Text('\$${budget.toStringAsFixed(0)}',
-              style: const TextStyle(color: Colors.white, fontSize: 13)),
-          const SizedBox(width: 12),
-          const Icon(Icons.people, color: Colors.lightBlueAccent, size: 14),
-          const SizedBox(width: 4),
-          Text('$population',
-              style: const TextStyle(color: Colors.white, fontSize: 13)),
-          const SizedBox(width: 12),
-          Icon(Icons.thumb_up_outlined, color: approvalColor, size: 14),
-          const SizedBox(width: 4),
-          Text('${(approval * 100).toInt()}%',
-              style: TextStyle(color: approvalColor, fontSize: 13)),
-          const SizedBox(width: 12),
-          const Icon(Icons.access_time, color: Colors.white38, size: 14),
-          const SizedBox(width: 4),
-          Text('T$tick',
-              style: const TextStyle(color: Colors.white38, fontSize: 13)),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Overlay Toolbar ───────────────────────────────────────────────────────────
 
 class _OverlayToolbar extends StatelessWidget {
   const _OverlayToolbar({required this.active, required this.onChanged});
@@ -231,50 +398,47 @@ class _OverlayToolbar extends StatelessWidget {
   final ValueChanged<OverlayType> onChanged;
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Wrap(
-        spacing: 4,
-        children: OverlayType.values.map((type) {
-          final isActive = active == type;
-          return GestureDetector(
-            onTap: () => onChanged(type),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-              decoration: BoxDecoration(
-                color: isActive ? Colors.white : Colors.black54,
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: isActive ? Colors.white : Colors.white30,
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        child: Wrap(
+          spacing: 4,
+          runSpacing: 4,
+          children: OverlayType.values.map((type) {
+            final isActive = active == type;
+            return GestureDetector(
+              onTap: () => onChanged(type),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isActive ? Colors.white : Colors.black54,
+                  borderRadius: BorderRadius.circular(5),
+                  border: Border.all(
+                      color: isActive ? Colors.white : Colors.white30),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(type.icon,
+                        size: 11,
+                        color: isActive ? Colors.black : Colors.white70),
+                    const SizedBox(width: 3),
+                    Text(type.label,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: isActive ? Colors.black : Colors.white70,
+                          fontWeight: isActive
+                              ? FontWeight.w700
+                              : FontWeight.normal,
+                        )),
+                  ],
                 ),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(type.icon,
-                      size: 12,
-                      color: isActive ? Colors.black : Colors.white70),
-                  const SizedBox(width: 4),
-                  Text(
-                    type.label,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: isActive ? Colors.black : Colors.white70,
-                      fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
+            );
+          }).toList(),
+        ),
+      );
 }
-
-// ── Overlay Legend ────────────────────────────────────────────────────────────
 
 class _OverlayLegend extends StatelessWidget {
   const _OverlayLegend({required this.overlay});
@@ -282,46 +446,30 @@ class _OverlayLegend extends StatelessWidget {
   final OverlayType overlay;
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.black54,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(overlay.label,
-              style: const TextStyle(color: Colors.white70, fontSize: 11)),
-          const SizedBox(width: 8),
-          _GradientBar(from: overlay.lowColor, to: overlay.highColor),
-          const SizedBox(width: 4),
-          const Text('niedrig → hoch',
-              style: TextStyle(color: Colors.white38, fontSize: 10)),
-        ],
-      ),
-    );
-  }
-}
-
-class _GradientBar extends StatelessWidget {
-  const _GradientBar({required this.from, required this.to});
-
-  final Color from;
-  final Color to;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 60,
-      height: 8,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [from, to]),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: Colors.white24),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Container(
+        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: Colors.black54,
+          borderRadius: BorderRadius.circular(5),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(overlay.label,
+                style: const TextStyle(
+                    color: Colors.white70, fontSize: 10)),
+            const SizedBox(width: 6),
+            Container(
+              width: 50,
+              height: 6,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                    colors: [overlay.lowColor, overlay.highColor]),
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+          ],
+        ),
+      );
 }
