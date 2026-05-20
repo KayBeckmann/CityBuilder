@@ -50,9 +50,9 @@ class TileInfoPanel extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          _InfoRow(label: 'Terrain', value: data.terrain.name),
+          _InfoRow(label: 'Terrain', value: data.terrain.label),
           if (data.zone != null)
-            _InfoRow(label: 'Zone', value: data.zone!.label),
+            _InfoRow(label: 'Zone', value: data.zone!.fullLabel),
           if (data.buildingLevel.hasBuilding)
             _InfoRow(label: 'Gebäude', value: data.buildingLevel.name),
           if (data.resource != null)

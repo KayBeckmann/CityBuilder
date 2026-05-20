@@ -340,8 +340,8 @@ class GameNotifier extends Notifier<GameModel> {
     t.hasRoad = false;
     t.hasPowerLine = false;
     t.hasPipe = false;
+    t.hasPark = false; // Parks are removable via demolishInfra
     // Power plants and water towers kept intact (use demolishAll to remove them)
-    // Trigger state update (TileData is mutable, need to notify Riverpod)
     state = state.copyWith();
   }
 

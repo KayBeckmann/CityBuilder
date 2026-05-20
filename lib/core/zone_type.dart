@@ -16,4 +16,10 @@ enum ZoneType {
         ZoneType.commercial => 'C',
         ZoneType.industrial => 'I',
       };
+
+  String get fullLabel => switch (this) {
+        ZoneType.residential => 'Wohngebiet',
+        ZoneType.commercial => 'Gewerbe',
+        ZoneType.industrial => 'Industrie',
+      };
 }
