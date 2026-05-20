@@ -12,6 +12,10 @@ import 'package:city_builder/core/world_position.dart';
 import 'package:city_builder/core/zone_type.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+const double kRoadCost = 300.0;
+const double kPowerLineCost = 200.0;
+const double kPipeCost = 250.0;
+
 const Map<TerrainType, double> terrainEditCost = {
   TerrainType.grass: 500.0,
   TerrainType.water: 2000.0,
@@ -99,7 +103,8 @@ class GameNotifier extends Notifier<GameModel> {
       taxRates: state.taxRates,
     );
 
-    final satisfactionScore = calculateSatisfaction(state.satisfaction);
+    final newSatisfaction = _computeSatisfaction(tileMap, currentPop, commercial, industrial);
+    final satisfactionScore = calculateSatisfaction(newSatisfaction);
 
     final newPopulation = calculatePopulation(
       tileMap: tileMap,
@@ -118,12 +123,78 @@ class GameNotifier extends Notifier<GameModel> {
       budget: state.budget + economy.netBalance,
       lastEconomy: economy,
       population: newPopulation,
+      satisfaction: newSatisfaction,
       approvalRating: approval,
+    );
+  }
+
+  SatisfactionFactors _computeSatisfaction(
+    TileMap tileMap,
+    int population,
+    int commercial,
+    int industrial,
+  ) {
+    var buildings = 0, withRoad = 0, withPower = 0, withPipe = 0;
+    for (var row = 0; row < tileMap.height; row++) {
+      for (var col = 0; col < tileMap.width; col++) {
+        final data = tileMap.getData((col: col, row: row));
+        if (data.zone != null && data.buildingLevel.hasBuilding) {
+          buildings++;
+          if (data.hasRoad) withRoad++;
+          if (data.hasPowerLine) withPower++;
+          if (data.hasPipe) withPipe++;
+        }
+      }
+    }
+
+    if (buildings == 0) {
+      return const SatisfactionFactors(employment: 0.5, housing: 0.5, services: 0.5);
+    }
+
+    final roadCov = withRoad / buildings;
+    final powerCov = withPower / buildings;
+    final pipeCov = withPipe / buildings;
+
+    final employmentRatio = population > 0
+        ? ((commercial + industrial) * 10.0 / population).clamp(0.0, 1.0)
+        : 0.5;
+
+    return SatisfactionFactors(
+      employment: (employmentRatio * (0.5 + 0.5 * powerCov)).clamp(0.0, 1.0),
+      housing: (0.3 + 0.7 * roadCov).clamp(0.0, 1.0),
+      services: ((roadCov + pipeCov) / 2.0).clamp(0.0, 1.0),
     );
   }
 
   void updateTaxRates(TaxRates rates) {
     state = state.copyWith(taxRates: rates);
+  }
+
+  bool placeRoad(WorldPosition pos) {
+    if (state.budget < kRoadCost) return false;
+    final tileMap = state.tileMap;
+    if (!tileMap.contains(pos) || tileMap.getData(pos).hasRoad) return false;
+    tileMap.setRoad(pos);
+    state = state.copyWith(budget: state.budget - kRoadCost);
+    return true;
+  }
+
+  bool placePowerLine(WorldPosition pos) {
+    if (state.budget < kPowerLineCost) return false;
+    final tileMap = state.tileMap;
+    if (!tileMap.contains(pos) || tileMap.getData(pos).hasPowerLine) return false;
+    tileMap.setPowerLine(pos);
+    state = state.copyWith(budget: state.budget - kPowerLineCost);
+    return true;
+  }
+
+  bool placePipe(WorldPosition pos) {
+    if (state.budget < kPipeCost) return false;
+    final tileMap = state.tileMap;
+    if (!tileMap.contains(pos) || tileMap.getData(pos).hasPipe) return false;
+    tileMap.setPipe(pos);
+    state = state.copyWith(budget: state.budget - kPipeCost);
+    return true;
   }
 
   String saveToJson() => const GameSerializer().serialize(state);
@@ -157,7 +228,10 @@ class GameNotifier extends Notifier<GameModel> {
 
         final d = demand.forZone(zone);
         if (d > 0.5 && data.buildingLevel != BuildingLevel.large) {
-          tileMap.setBuildingLevel(pos, data.buildingLevel.next);
+          final next = data.buildingLevel.next;
+          // Roads are required to grow beyond small buildings
+          if (next != BuildingLevel.small && !data.hasRoad) continue;
+          tileMap.setBuildingLevel(pos, next);
         } else if (d <= 0.0 && data.buildingLevel.hasBuilding) {
           tileMap.setBuildingLevel(pos, BuildingLevel.empty);
         }

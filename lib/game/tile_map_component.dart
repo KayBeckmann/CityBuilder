@@ -21,6 +21,13 @@ class TileMapComponent extends Component with HasGameReference {
     ..style = PaintingStyle.stroke
     ..strokeWidth = _borderWidth;
 
+  static final _roadPaint = Paint()..color = const Color(0xFF555555);
+  static final _powerLinePaint = Paint()
+    ..color = const Color(0xFFFFEE58)
+    ..strokeWidth = 1.5
+    ..style = PaintingStyle.stroke;
+  static final _pipePaint = Paint()..color = const Color(0xFF1565C0);
+
   // Zone tints (shown when no overlay, no building sprite)
   static final _zoneTints = {
     ZoneType.residential: const Color(0x4032CD32),
@@ -97,6 +104,29 @@ class TileMapComponent extends Component with HasGameReference {
             if (tint != null) canvas.drawRect(rect, Paint()..color = tint);
             _drawZoneBorder(canvas, rect, zone);
           }
+        }
+
+        // ── Infrastructure layer ──────────────────────────────────────
+        if (data.hasRoad) {
+          // Road: inset gray fill (keep border visible)
+          canvas.drawRect(
+            rect.deflate(1),
+            _roadPaint,
+          );
+        }
+        if (data.hasPowerLine) {
+          // Power line: yellow cross from center to edges
+          final cx = rect.center.dx;
+          final cy = rect.center.dy;
+          canvas.drawLine(Offset(rect.left, cy), Offset(rect.right, cy), _powerLinePaint);
+          canvas.drawLine(Offset(cx, rect.top), Offset(cx, rect.bottom), _powerLinePaint);
+        }
+        if (data.hasPipe) {
+          // Pipe: small blue square in bottom-right corner
+          canvas.drawRect(
+            Rect.fromLTWH(rect.right - 5, rect.bottom - 5, 4, 4),
+            _pipePaint,
+          );
         }
 
         // ── Overlay heatmap ──────────────────────────────────────────

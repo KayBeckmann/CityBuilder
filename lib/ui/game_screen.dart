@@ -93,14 +93,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         }
 
       case ToolType.road:
+        if (!notifier.placeRoad(tilePos)) _flashError('Nicht genug Budget!');
+
       case ToolType.powerLine:
+        if (!notifier.placePowerLine(tilePos)) _flashError('Nicht genug Budget!');
+
       case ToolType.pipe:
-        // Infrastructure placement — deducts cost
-        if (model.budget >= tool.costPerTile) {
-          notifier.spendBudget(tool.costPerTile);
-        } else {
-          _flashError('Nicht genug Budget!');
-        }
+        if (!notifier.placePipe(tilePos)) _flashError('Nicht genug Budget!');
     }
 
     // Refresh overlay

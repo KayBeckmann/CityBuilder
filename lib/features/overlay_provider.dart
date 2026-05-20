@@ -40,8 +40,12 @@ Map<WorldPosition, double> computeOverlayValues(
             if (data.zone == ZoneType.commercial && data.buildingLevel.hasBuilding) v += 0.2;
             return v.clamp(0.0, 1.0);
           }(),
-        OverlayType.power => data.buildingLevel.hasBuilding ? 0.7 : 0.2,
-        OverlayType.water => data.buildingLevel.hasBuilding ? 0.7 : 0.1,
+        OverlayType.power => data.hasPowerLine
+            ? 1.0
+            : (data.zone != null ? 0.15 : 0.0),
+        OverlayType.water => data.hasPipe
+            ? 1.0
+            : (data.zone != null ? 0.15 : 0.0),
         OverlayType.traffic => () {
             if (data.zone != null && data.buildingLevel.hasBuilding) {
               return (data.buildingLevel.capacity / 200.0).clamp(0.0, 1.0);
