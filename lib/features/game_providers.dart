@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:city_builder/core/building_level.dart';
 import 'package:city_builder/core/demand_system.dart';
 import 'package:city_builder/core/economy.dart';
@@ -136,6 +138,7 @@ class GameNotifier extends Notifier<GameModel> {
     _checkMilestones(prevPop, newPopulation.total, prevBudget, prevApproval, approval);
   }
 
+  static final _rng = Random();
   static const _popMilestones = [50, 100, 250, 500, 1000, 2500, 5000, 10000];
 
   void _checkMilestones(
@@ -174,6 +177,27 @@ class GameNotifier extends Notifier<GameModel> {
         isWarning: true,
       ));
     }
+
+    // Random events every ~15 ticks
+    if (state.tick > 5 && state.tick % 15 == 0) {
+      _triggerRandomEvent(q);
+    }
+  }
+
+  static const _events = [
+    (msg: 'Wirtschaftsboom! Steuereinnahmen +\$500', budget: 500.0, warn: false),
+    (msg: 'Stadtfest! Bevölkerung sehr zufrieden', budget: 200.0, warn: false),
+    (msg: 'Rohrleitungsriss – Reparatur kostet \$300', budget: -300.0, warn: true),
+    (msg: 'Stromnetz-Störung – Reparatur \$400', budget: -400.0, warn: true),
+    (msg: 'Fördermittel vom Bund: +\$1000', budget: 1000.0, warn: false),
+    (msg: 'Schwerer Sturm — Schäden: -\$500', budget: -500.0, warn: true),
+  ];
+
+  void _triggerRandomEvent(NotificationQueue q) {
+    if (state.population.total < 10) return;
+    final event = _events[_rng.nextInt(_events.length)];
+    state = state.copyWith(budget: state.budget + event.budget);
+    q.push(CityNotification(message: event.msg, isWarning: event.warn));
   }
 
   SatisfactionFactors _computeSatisfaction(
@@ -213,7 +237,8 @@ class GameNotifier extends Notifier<GameModel> {
     return SatisfactionFactors(
       employment: (employmentRatio * (0.5 + 0.5 * powerCov)).clamp(0.0, 1.0),
       housing: (0.3 + 0.7 * roadCov).clamp(0.0, 1.0),
-      services: ((roadCov + pipeCov) / 2.0).clamp(0.0, 1.0),
+      // Base service score 0.3 so the city isn't dead without early infrastructure
+      services: (0.3 + 0.35 * powerCov + 0.35 * pipeCov).clamp(0.0, 1.0),
     );
   }
 
@@ -316,7 +341,7 @@ class GameNotifier extends Notifier<GameModel> {
         if (zone == null) continue;
 
         final d = demand.forZone(zone);
-        if (d > 0.5 && data.buildingLevel != BuildingLevel.large) {
+        if (d > 0.25 && data.buildingLevel != BuildingLevel.large) {
           final next = data.buildingLevel.next;
           // Roads are required to grow beyond small buildings
           if (next != BuildingLevel.small && !data.hasRoad) continue;
