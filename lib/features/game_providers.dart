@@ -264,6 +264,16 @@ class GameNotifier extends Notifier<GameModel> {
     );
   }
 
+  bool demolishAll(WorldPosition pos) {
+    const cost = 50.0;
+    if (state.budget < cost) return false;
+    final tileMap = state.tileMap;
+    if (!tileMap.contains(pos)) return false;
+    tileMap.clearAll(pos);
+    state = state.copyWith(budget: state.budget - cost);
+    return true;
+  }
+
   bool placeWaterTower(WorldPosition pos) {
     const cost = 3000.0;
     if (state.budget < cost) return false;

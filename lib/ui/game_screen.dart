@@ -63,7 +63,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   void _handleTileTap(WorldPosition tilePos) {
     final tool = ref.read(toolProvider);
     final notifier = ref.read(gameProvider.notifier);
-    final model = ref.read(gameProvider);
 
     switch (tool) {
       case ToolType.inspect:
@@ -86,10 +85,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         notifier.setZone(tilePos, null);
 
       case ToolType.demolishAll:
-        if (model.budget >= 50) {
-          notifier.setZone(tilePos, null);
-          notifier.spendBudget(50);
-        } else {
+        if (!notifier.demolishAll(tilePos)) {
           _flashError('Nicht genug Budget!');
         }
 

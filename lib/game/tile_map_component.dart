@@ -114,8 +114,7 @@ class TileMapComponent extends Component with HasGameReference {
         // ── Infrastructure layer ──────────────────────────────────────
         if (data.hasRoad) {
           if (!data.buildingLevel.hasBuilding) {
-            // Full road fill when no building
-            canvas.drawRect(rect.deflate(1), _roadPaint);
+            _drawRoadConnections(canvas, rect, pos);
           } else {
             // Small road strip at bottom when building is present
             canvas.drawRect(
@@ -218,6 +217,38 @@ class TileMapComponent extends Component with HasGameReference {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.0,
     );
+  }
+
+  bool _neighborHasRoad(WorldPosition pos, int dc, int dr) {
+    final n = (col: pos.col + dc, row: pos.row + dr);
+    if (!n.isValid(tileMap.width, tileMap.height)) return false;
+    return tileMap.getData(n).hasRoad;
+  }
+
+  void _drawRoadConnections(Canvas canvas, Rect rect, WorldPosition pos) {
+    const arm = 6.0; // half-width of road arm
+    final cx = rect.left + kTileSize / 2;
+    final cy = rect.top + kTileSize / 2;
+
+    // Center square
+    canvas.drawRect(
+      Rect.fromCenter(center: Offset(cx, cy), width: arm * 2, height: arm * 2),
+      _roadPaint,
+    );
+
+    // Arms toward road neighbors
+    if (_neighborHasRoad(pos, -1, 0)) {
+      canvas.drawRect(Rect.fromLTWH(rect.left, cy - arm, cx - rect.left - arm, arm * 2), _roadPaint);
+    }
+    if (_neighborHasRoad(pos, 1, 0)) {
+      canvas.drawRect(Rect.fromLTWH(cx + arm, cy - arm, rect.right - cx - arm, arm * 2), _roadPaint);
+    }
+    if (_neighborHasRoad(pos, 0, -1)) {
+      canvas.drawRect(Rect.fromLTWH(cx - arm, rect.top, arm * 2, cy - rect.top - arm), _roadPaint);
+    }
+    if (_neighborHasRoad(pos, 0, 1)) {
+      canvas.drawRect(Rect.fromLTWH(cx - arm, cy + arm, arm * 2, rect.bottom - cy - arm), _roadPaint);
+    }
   }
 
   void _drawLabel(Canvas canvas, Rect tile, String text) {

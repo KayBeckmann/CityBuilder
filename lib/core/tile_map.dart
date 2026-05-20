@@ -106,6 +106,18 @@ class TileMap {
     _tiles[pos.row][pos.col].hasWaterTower = value;
   }
 
+  void clearAll(WorldPosition pos) {
+    assert(pos.isValid(width, height));
+    final t = _tiles[pos.row][pos.col];
+    t.zone = null;
+    t.buildingLevel = BuildingLevel.empty;
+    t.hasRoad = false;
+    t.hasPowerLine = false;
+    t.hasPipe = false;
+    t.hasPowerPlant = false;
+    t.hasWaterTower = false;
+  }
+
   Set<WorldPosition> computeWateredTiles() {
     final towers = <WorldPosition>[];
     final pipes = <WorldPosition>{};
