@@ -202,18 +202,19 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     // Show city notifications
     ref.listen(notificationQueueProvider, (_, queue) {
       if (queue.isEmpty || !mounted) return;
-      final n = ref.read(notificationQueueProvider.notifier).pop();
-      if (n == null) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(n.message),
-          duration: const Duration(seconds: 3),
-          backgroundColor:
-              n.isWarning ? Colors.red[800] : const Color(0xFF1B5E20),
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.only(bottom: 90, left: 16, right: 16),
-        ),
-      );
+      final drained = ref.read(notificationQueueProvider.notifier).drain();
+      for (final n in drained) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(n.message),
+            duration: const Duration(seconds: 3),
+            backgroundColor:
+                n.isWarning ? Colors.red[800] : const Color(0xFF1B5E20),
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.only(bottom: 90, left: 16, right: 16),
+          ),
+        );
+      }
     });
 
     // Stop timer on game over

@@ -12,11 +12,10 @@ class NotificationQueue extends Notifier<List<CityNotification>> {
 
   void push(CityNotification n) => state = [...state, n];
 
-  CityNotification? pop() {
-    if (state.isEmpty) return null;
-    final first = state.first;
-    state = state.sublist(1);
-    return first;
+  List<CityNotification> drain() {
+    final all = state;
+    state = const [];
+    return all;
   }
 }
 
