@@ -7,6 +7,7 @@ import 'package:city_builder/core/map_generator.dart';
 import 'package:city_builder/core/population_model.dart';
 import 'package:city_builder/core/resource_type.dart';
 import 'package:city_builder/core/satisfaction_system.dart';
+import 'package:city_builder/core/space_phase.dart';
 import 'package:city_builder/core/tech_tree.dart';
 import 'package:city_builder/core/terrain_type.dart';
 import 'package:city_builder/core/tile_map.dart';
@@ -37,6 +38,7 @@ class GameSerializer {
           if (data.hasHospital) 'hp': 1,
           if (data.hasSchool) 'sc': 1,
           if (data.hasFireStation) 'fs': 1,
+          if (data.hasSpaceport) 'sp': 1,
         });
       }
       tiles.add(rowList);
@@ -64,6 +66,14 @@ class GameSerializer {
       'techProgress': model.techTree.progress
           .map((k, v) => MapEntry(k.index.toString(), v)),
       'techPoints': model.techTree.researchPoints,
+      'spaceActive': model.spacePhase.spacePhaseActive,
+      'spaceRE': model.spacePhase.rareEarthStockpile,
+      'spaceColony': model.spacePhase.colonyPopulation,
+      'spaceMissions': model.spacePhase.activeMissions.map((m) => {
+            'type': m.type.index,
+            'start': m.startedAtTick,
+            'dur': m.durationTicks,
+          }).toList(),
       'tiles': tiles,
     };
 
@@ -103,6 +113,7 @@ class GameSerializer {
         if (cell.containsKey('hp')) tileMap.setHospital(pos);
         if (cell.containsKey('sc')) tileMap.setSchool(pos);
         if (cell.containsKey('fs')) tileMap.setFireStation(pos);
+        if (cell.containsKey('sp')) tileMap.setSpaceport(pos);
       }
     }
 
@@ -149,6 +160,25 @@ class GameSerializer {
       loan: (json['loan'] as num? ?? 0).toDouble(),
       cityName: (json['cityName'] as String? ?? 'Neustadt'),
       techTree: techTree,
+      spacePhase: json.containsKey('spaceActive')
+          ? SpacePhaseState(
+              spacePhaseActive: json['spaceActive'] as bool? ?? false,
+              rareEarthStockpile:
+                  (json['spaceRE'] as num? ?? 0).toDouble(),
+              colonyPopulation: json['spaceColony'] as int? ?? 0,
+              activeMissions:
+                  ((json['spaceMissions'] as List<dynamic>?) ?? [])
+                      .map((m) {
+                        final map = m as Map<String, dynamic>;
+                        return SpaceMission(
+                          type: SpaceMissionType.values[map['type'] as int],
+                          startedAtTick: map['start'] as int,
+                          durationTicks: map['dur'] as int,
+                        );
+                      })
+                      .toList(),
+            )
+          : null,
     );
   }
 }

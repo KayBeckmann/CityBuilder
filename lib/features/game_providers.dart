@@ -6,6 +6,7 @@ import 'package:city_builder/core/economy.dart';
 import 'package:city_builder/core/game_model.dart';
 import 'package:city_builder/core/game_serializer.dart';
 import 'package:city_builder/core/map_generator.dart';
+import 'package:city_builder/core/space_phase.dart';
 import 'package:city_builder/core/tech_tree.dart';
 import 'package:city_builder/core/population_model.dart';
 import 'package:city_builder/core/satisfaction_system.dart';
@@ -184,10 +185,32 @@ class GameNotifier extends Notifier<GameModel> {
     final prevApproval = state.approvalRating;
     final loanInterest = state.loan * GameModel.loanInterestRate;
 
+    // Space phase tick
+    final spacePhase = state.spacePhase;
+    const spaceSystem = SpaceSystem();
+    if (!spacePhase.spacePhaseActive) {
+      final hasSpaceport = _countTiles(tileMap, (d) => d.hasSpaceport) > 0;
+      if (spaceSystem.checkSpaceTrigger(
+        population: currentPop,
+        spaceportBuilt: hasSpaceport,
+        spaceportResearched: techTree.isResearched(TechNode.spaceportPrep),
+      )) {
+        spacePhase.spacePhaseActive = true;
+        ref.read(notificationQueueProvider.notifier).push(
+          const CityNotification(message: 'Space-Phase erreicht! Raumhafen aktiv.'),
+        );
+      }
+    }
+    spaceSystem.tick(state: spacePhase, currentTick: state.tick + 1);
+
     final hiBonus = techTree.isResearched(TechNode.hightechIndustry)
         ? economy.taxIncome * 0.05
         : 0.0;
-    final newBudget = state.budget + economy.netBalance + hiBonus - loanInterest;
+    final rareEarthBonus = spacePhase.spacePhaseActive
+        ? spaceSystem.hightechDemandBonus(rareEarth: spacePhase.rareEarthStockpile) * 200.0
+        : 0.0;
+    final newBudget =
+        state.budget + economy.netBalance + hiBonus + rareEarthBonus - loanInterest;
     final newHistory = [...state.budgetHistory, newBudget];
     final budgetHistory = newHistory.length > 20
         ? newHistory.sublist(newHistory.length - 20)
@@ -327,15 +350,18 @@ class GameNotifier extends Notifier<GameModel> {
     q.push(CityNotification(message: event.msg, isWarning: event.warn));
   }
 
-  int _countFireStations(TileMap tileMap) {
+  int _countTiles(TileMap tileMap, bool Function(TileData) predicate) {
     var count = 0;
     for (var row = 0; row < tileMap.height; row++) {
       for (var col = 0; col < tileMap.width; col++) {
-        if (tileMap.getData((col: col, row: row)).hasFireStation) count++;
+        if (predicate(tileMap.getData((col: col, row: row)))) count++;
       }
     }
     return count;
   }
+
+  int _countFireStations(TileMap tileMap) =>
+      _countTiles(tileMap, (d) => d.hasFireStation);
 
   void _triggerEarthquakeEvent(NotificationQueue q) {
     final buildings = <WorldPosition>[];
@@ -625,6 +651,32 @@ class GameNotifier extends Notifier<GameModel> {
     if (!tileMap.contains(pos) || tileMap.getData(pos).hasPipe) return false;
     tileMap.setPipe(pos);
     state = state.copyWith(budget: state.budget - kPipeCost);
+    return true;
+  }
+
+  bool placeSpaceport(WorldPosition pos) {
+    const cost = 50000.0;
+    if (state.budget < cost) return false;
+    if (!state.techTree.isResearched(TechNode.spaceportPrep)) return false;
+    final tileMap = state.tileMap;
+    if (!tileMap.contains(pos)) return false;
+    if (tileMap.get(pos) == TerrainType.water) return false;
+    if (tileMap.getData(pos).hasSpaceport) return false;
+    tileMap.setSpaceport(pos);
+    tileMap.setZone(pos, null);
+    state = state.copyWith(budget: state.budget - cost);
+    return true;
+  }
+
+  bool launchMission(SpaceMissionType type) {
+    if (!state.spacePhase.spacePhaseActive) return false;
+    if (state.budget < type.cost) return false;
+    state.spacePhase.activeMissions.add(SpaceMission(
+      type: type,
+      startedAtTick: state.tick,
+      durationTicks: type.duration.inSeconds,
+    ));
+    state = state.copyWith(budget: state.budget - type.cost);
     return true;
   }
 

@@ -18,6 +18,7 @@ import 'package:city_builder/ui/new_game_dialog.dart';
 import 'package:city_builder/ui/save_load_dialog.dart';
 import 'package:city_builder/ui/settings_screen.dart';
 import 'package:city_builder/ui/tax_panel.dart';
+import 'package:city_builder/ui/space_panel.dart';
 import 'package:city_builder/ui/tech_panel.dart';
 import 'package:city_builder/ui/tile_info_panel.dart';
 import 'package:flame/game.dart';
@@ -38,6 +39,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   var _showBudget = false;
   var _showTaxPanel = false;
   var _showTechPanel = false;
+  var _showSpacePanel = false;
   var _showTileInfo = false;
   var _tileInfoPos = (col: 0, row: 0);
   var _gameOver = false;
@@ -118,6 +120,11 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
       case ToolType.waterTower:
         if (!notifier.placeWaterTower(tilePos)) _flashError('Nicht genug Budget!');
+
+      case ToolType.spaceport:
+        if (!notifier.placeSpaceport(tilePos)) {
+          _flashError('Nicht genug Budget oder Raumfahrtbasis nicht erforscht!');
+        }
 
       case ToolType.road:
         if (!notifier.placeRoad(tilePos)) _flashError('Nicht genug Budget!');
@@ -319,8 +326,20 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                             _showTechPanel = !_showTechPanel;
                             _showTaxPanel = false;
                             _showBudget = false;
+                            _showSpacePanel = false;
                           }),
                           tooltip: 'Forschung',
+                        ),
+                        const SizedBox(width: 4),
+                        _HudIconButton(
+                          icon: Icons.rocket_launch_outlined,
+                          onTap: () => setState(() {
+                            _showSpacePanel = !_showSpacePanel;
+                            _showTechPanel = false;
+                            _showTaxPanel = false;
+                            _showBudget = false;
+                          }),
+                          tooltip: 'Raumfahrt',
                         ),
                         const SizedBox(width: 4),
                         _HudIconButton(
@@ -379,6 +398,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   TechPanel(
                     onClose: () =>
                         setState(() => _showTechPanel = false),
+                  ),
+
+                // Space panel
+                if (_showSpacePanel)
+                  SpacePanel(
+                    onClose: () =>
+                        setState(() => _showSpacePanel = false),
                   ),
 
                 // Tile info (inspect tool)
