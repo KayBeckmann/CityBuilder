@@ -262,7 +262,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   children: [
                     _HudBar(
                       budget: budget,
-                      tick: model.tick,
                       year: model.year,
                       cityName: model.cityName,
                       population: population,
@@ -406,7 +405,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   ? GameOverReason.bankrupt
                   : GameOverReason.approvalTooLow,
               tick: model.tick,
+              year: model.year,
               population: model.population.total,
+              cityName: model.cityName,
               onNewGame: _triggerNewGame,
             ),
 
@@ -452,7 +453,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 class _HudBar extends StatelessWidget {
   const _HudBar({
     required this.budget,
-    required this.tick,
     required this.year,
     required this.cityName,
     required this.population,
@@ -461,7 +461,6 @@ class _HudBar extends StatelessWidget {
   });
 
   final double budget;
-  final int tick;
   final int year;
   final String cityName;
   final int population;

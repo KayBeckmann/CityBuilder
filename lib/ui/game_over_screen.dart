@@ -9,12 +9,16 @@ class GameOverScreen extends StatelessWidget {
     required this.tick,
     required this.population,
     required this.onNewGame,
+    this.cityName = 'Neustadt',
+    this.year = 1,
   });
 
   final GameOverReason reason;
   final int tick;
   final int population;
   final VoidCallback onNewGame;
+  final String cityName;
+  final int year;
 
   String get _headline => switch (reason) {
         GameOverReason.bankrupt => 'Insolvenz!',
@@ -62,7 +66,8 @@ class GameOverScreen extends StatelessWidget {
                 style: const TextStyle(color: Colors.white70, fontSize: 14),
               ),
               const SizedBox(height: 24),
-              _StatRow(label: 'Gespielt', value: '$tick Ticks'),
+              _StatRow(label: 'Stadt', value: cityName),
+              _StatRow(label: 'Gespielt', value: 'Jahr $year'),
               _StatRow(label: 'Einwohner', value: '$population'),
               const SizedBox(height: 24),
               ElevatedButton.icon(
