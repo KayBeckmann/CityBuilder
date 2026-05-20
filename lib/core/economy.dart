@@ -81,6 +81,7 @@ EconomyResult calculateEconomy({
       if (data.hasWaterTower) operatingCosts += _waterTowerMaintenance;
       if (data.hasPark) operatingCosts += _parkMaintenance;
       if (data.hasPoliceStation) operatingCosts += 8.0;
+      if (data.hasHospital) operatingCosts += 12.0;
     }
   }
 

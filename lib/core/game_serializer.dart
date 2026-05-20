@@ -33,6 +33,7 @@ class GameSerializer {
           if (data.hasWaterTower) 'wt': 1,
           if (data.hasPark) 'pk': 1,
           if (data.hasPoliceStation) 'ps': 1,
+          if (data.hasHospital) 'hp': 1,
         });
       }
       tiles.add(rowList);
@@ -91,6 +92,7 @@ class GameSerializer {
         if (cell.containsKey('wt')) tileMap.setWaterTower(pos);
         if (cell.containsKey('pk')) tileMap.setPark(pos);
         if (cell.containsKey('ps')) tileMap.setPoliceStation(pos);
+        if (cell.containsKey('hp')) tileMap.setHospital(pos);
       }
     }
 

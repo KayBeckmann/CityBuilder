@@ -37,6 +37,12 @@ class TileMapComponent extends Component with HasGameReference {
   static final _policePaint = Paint()..color = const Color(0xFF1565C0);
   static final _policeBgPaint = Paint()..color = const Color(0xFF001529);
   static final _policeSymbolPaint = Paint()..color = Colors.white;
+  static final _hospitalPaint = Paint()..color = const Color(0xFFE53935);
+  static final _hospitalBgPaint = Paint()..color = const Color(0xFF2D0000);
+  static final _hospitalCrossPaint = Paint()
+    ..color = Colors.white
+    ..strokeWidth = 3.0
+    ..style = PaintingStyle.stroke;
 
   // Zone tints (shown when no overlay, no building sprite)
   static final _zoneTints = {
@@ -174,6 +180,14 @@ class TileMapComponent extends Component with HasGameReference {
           // Star shape representing police badge
           canvas.drawCircle(Offset(cx, cy), 4, _policeSymbolPaint);
           canvas.drawCircle(Offset(cx, cy), 3, _policePaint);
+        }
+        if (data.hasHospital) {
+          canvas.drawRect(rect.deflate(1), _hospitalBgPaint);
+          canvas.drawRect(rect.deflate(4), _hospitalPaint);
+          final cx = rect.center.dx;
+          final cy = rect.center.dy;
+          canvas.drawLine(Offset(cx - 5, cy), Offset(cx + 5, cy), _hospitalCrossPaint);
+          canvas.drawLine(Offset(cx, cy - 5), Offset(cx, cy + 5), _hospitalCrossPaint);
         }
         if (data.hasWaterTower) {
           canvas.drawRect(rect.deflate(1), _waterTowerBgPaint);
