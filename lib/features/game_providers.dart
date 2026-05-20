@@ -10,6 +10,7 @@ import 'package:city_builder/core/terrain_type.dart';
 import 'package:city_builder/core/tile_map.dart';
 import 'package:city_builder/core/world_position.dart';
 import 'package:city_builder/core/zone_type.dart';
+import 'package:city_builder/features/notification_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 const double kRoadCost = 300.0;
@@ -118,6 +119,10 @@ class GameNotifier extends Notifier<GameModel> {
       industrialSatisfaction: satisfactionScore * 0.8,
     );
 
+    final prevPop = state.population.total;
+    final prevBudget = state.budget;
+    final prevApproval = state.approvalRating;
+
     state = state.copyWith(
       tick: state.tick + 1,
       budget: state.budget + economy.netBalance,
@@ -126,6 +131,48 @@ class GameNotifier extends Notifier<GameModel> {
       satisfaction: newSatisfaction,
       approvalRating: approval,
     );
+
+    _checkMilestones(prevPop, newPopulation.total, prevBudget, prevApproval, approval);
+  }
+
+  static const _popMilestones = [50, 100, 250, 500, 1000, 2500, 5000, 10000];
+
+  void _checkMilestones(
+    int prevPop,
+    int newPop,
+    double prevBudget,
+    double prevApproval,
+    double newApproval,
+  ) {
+    final q = ref.read(notificationQueueProvider.notifier);
+
+    for (final milestone in _popMilestones) {
+      if (prevPop < milestone && newPop >= milestone) {
+        q.push(CityNotification(message: '$milestone Einwohner erreicht!'));
+        return;
+      }
+    }
+
+    if (prevBudget >= 10000 && state.budget < 10000 && state.budget > 0) {
+      q.push(CityNotification(
+        message: 'Budget unter \$10.000 – Finanzen prüfen!',
+        isWarning: true,
+      ));
+    }
+
+    if (prevBudget > 0 && state.budget <= 0) {
+      q.push(CityNotification(
+        message: 'Budget im Minus! Insolvenz droht.',
+        isWarning: true,
+      ));
+    }
+
+    if (prevApproval >= 0.3 && newApproval < 0.3) {
+      q.push(CityNotification(
+        message: 'Niedrige Zustimmung! Bürger sind unzufrieden.',
+        isWarning: true,
+      ));
+    }
   }
 
   SatisfactionFactors _computeSatisfaction(

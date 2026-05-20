@@ -4,6 +4,7 @@ import 'package:city_builder/core/audio_manager.dart';
 import 'package:city_builder/core/overlay_type.dart';
 import 'package:city_builder/core/world_position.dart';
 import 'package:city_builder/features/game_providers.dart';
+import 'package:city_builder/features/notification_provider.dart';
 import 'package:city_builder/features/overlay_provider.dart';
 import 'package:city_builder/features/time_provider.dart';
 import 'package:city_builder/features/tool_provider.dart';
@@ -194,6 +195,23 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         final m = ref.read(gameProvider);
         widget.game.loadMap(m.tileMap);
       }
+    });
+
+    // Show city notifications
+    ref.listen(notificationQueueProvider, (_, queue) {
+      if (queue.isEmpty || !mounted) return;
+      final n = ref.read(notificationQueueProvider.notifier).pop();
+      if (n == null) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(n.message),
+          duration: const Duration(seconds: 3),
+          backgroundColor:
+              n.isWarning ? Colors.red[800] : const Color(0xFF1B5E20),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.only(bottom: 90, left: 16, right: 16),
+        ),
+      );
     });
 
     // Stop timer on game over
