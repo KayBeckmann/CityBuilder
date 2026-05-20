@@ -41,6 +41,9 @@ class GameModel {
     this.infraStats = const InfraStats(),
     this.budgetHistory = const [],
     this.cityName = 'Neustadt',
+    this.demandR = 0.0,
+    this.demandC = 0.0,
+    this.demandI = 0.0,
   });
 
   final TileMap tileMap;
@@ -55,6 +58,9 @@ class GameModel {
   final InfraStats infraStats;
   final List<double> budgetHistory;
   final String cityName;
+  final double demandR;
+  final double demandC;
+  final double demandI;
 
   static const int ticksPerYear = 20;
 
@@ -86,6 +92,9 @@ class GameModel {
     InfraStats? infraStats,
     List<double>? budgetHistory,
     String? cityName,
+    double? demandR,
+    double? demandC,
+    double? demandI,
   }) =>
       GameModel(
         tileMap: tileMap ?? this.tileMap,
@@ -100,5 +109,8 @@ class GameModel {
         infraStats: infraStats ?? this.infraStats,
         budgetHistory: budgetHistory ?? this.budgetHistory,
         cityName: cityName ?? this.cityName,
+        demandR: demandR ?? this.demandR,
+        demandC: demandC ?? this.demandC,
+        demandI: demandI ?? this.demandI,
       );
 }

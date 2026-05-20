@@ -178,6 +178,9 @@ class GameNotifier extends Notifier<GameModel> {
       approvalRating: approval,
       infraStats: _lastInfraStats,
       budgetHistory: budgetHistory,
+      demandR: demand.residential.clamp(0, 5),
+      demandC: demand.commercial.clamp(0, 5),
+      demandI: demand.industrial.clamp(0, 5),
     );
 
     _checkMilestones(prevPop, newPopulation.total, prevBudget, prevApproval, approval);

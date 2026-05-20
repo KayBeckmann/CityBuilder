@@ -421,6 +421,12 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Demand indicator
+                  _DemandBar(
+                    demandR: model.demandR,
+                    demandC: model.demandC,
+                    demandI: model.demandI,
+                  ),
                   // Time controls
                   Align(
                     alignment: Alignment.centerRight,
@@ -635,4 +641,67 @@ class _OverlayLegend extends StatelessWidget {
           ],
         ),
       );
+}
+
+class _DemandBar extends StatelessWidget {
+  const _DemandBar({
+    required this.demandR,
+    required this.demandC,
+    required this.demandI,
+  });
+
+  final double demandR;
+  final double demandC;
+  final double demandI;
+
+  @override
+  Widget build(BuildContext context) {
+    if (demandR == 0 && demandC == 0 && demandI == 0) return const SizedBox.shrink();
+    return Container(
+      color: Colors.black87,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text('Nachfrage: ',
+              style: TextStyle(color: Colors.white38, fontSize: 10)),
+          _DemandChip('W', demandR, const Color(0xFF4CAF50)),
+          const SizedBox(width: 8),
+          _DemandChip('G', demandC, const Color(0xFF2196F3)),
+          const SizedBox(width: 8),
+          _DemandChip('I', demandI, const Color(0xFFFF9800)),
+        ],
+      ),
+    );
+  }
+}
+
+class _DemandChip extends StatelessWidget {
+  const _DemandChip(this.label, this.value, this.color);
+  final String label;
+  final double value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final pct = (value / 5.0).clamp(0.0, 1.0);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('$label ', style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w700)),
+        SizedBox(
+          width: 40,
+          height: 6,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(3),
+            child: LinearProgressIndicator(
+              value: pct,
+              backgroundColor: Colors.white12,
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
