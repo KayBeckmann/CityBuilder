@@ -63,16 +63,35 @@ Map<WorldPosition, double> computeOverlayValues(
             ? 1.0
             : (data.zone != null ? 0.15 : 0.0),
         OverlayType.traffic => () {
-            if (data.zone != null && data.buildingLevel.hasBuilding) {
-              return (data.buildingLevel.capacity / 200.0).clamp(0.0, 1.0);
+            if (!data.hasRoad) return 0.0;
+            // Traffic = sum of building capacities within radius 2
+            var load = 0.0;
+            for (var dr = -2; dr <= 2; dr++) {
+              for (var dc = -2; dc <= 2; dc++) {
+                if (dr == 0 && dc == 0) continue;
+                final n = (col: pos.col + dc, row: pos.row + dr);
+                if (!n.isValid(tileMap.width, tileMap.height)) continue;
+                final nd = tileMap.getData(n);
+                if (nd.buildingLevel.hasBuilding) load += nd.buildingLevel.capacity;
+              }
             }
-            return 0.0;
+            return (load / 800.0).clamp(0.0, 1.0);
           }(),
         OverlayType.pollution => () {
-            if (data.zone == ZoneType.industrial && data.buildingLevel.hasBuilding) {
-              return (data.buildingLevel.index / 3.0).clamp(0.0, 1.0);
+            var pollution = 0.0;
+            // Sum industrial output from self and nearby tiles
+            for (var dr = -3; dr <= 3; dr++) {
+              for (var dc = -3; dc <= 3; dc++) {
+                final n = (col: pos.col + dc, row: pos.row + dr);
+                if (!n.isValid(tileMap.width, tileMap.height)) continue;
+                final nd = tileMap.getData(n);
+                if (nd.zone == ZoneType.industrial && nd.buildingLevel.hasBuilding) {
+                  final dist = (dr.abs() + dc.abs()).toDouble();
+                  pollution += (nd.buildingLevel.index / 3.0) * (1.0 - dist / 7.0);
+                }
+              }
             }
-            return 0.0;
+            return pollution.clamp(0.0, 1.0);
           }(),
         OverlayType.crime => () {
             if (data.zone == ZoneType.industrial && data.buildingLevel.hasBuilding) return 0.6;
