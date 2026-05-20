@@ -11,6 +11,7 @@ import 'package:city_builder/features/tool_provider.dart';
 import 'package:city_builder/game/city_game.dart';
 import 'package:city_builder/ui/budget_panel.dart';
 import 'package:city_builder/ui/game_over_screen.dart';
+import 'package:city_builder/ui/help_overlay.dart';
 import 'package:city_builder/ui/game_toolbar.dart';
 import 'package:city_builder/ui/new_game_dialog.dart';
 import 'package:city_builder/ui/save_load_dialog.dart';
@@ -37,6 +38,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   var _showTileInfo = false;
   var _tileInfoPos = (col: 0, row: 0);
   var _gameOver = false;
+  var _showHelp = false;
 
   @override
   void initState() {
@@ -301,6 +303,12 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                         ),
                         const SizedBox(width: 4),
                         _HudIconButton(
+                          icon: Icons.help_outline,
+                          onTap: () => setState(() => _showHelp = !_showHelp),
+                          tooltip: 'Hilfe',
+                        ),
+                        const SizedBox(width: 4),
+                        _HudIconButton(
                           icon: Icons.settings_outlined,
                           onTap: () => Navigator.push(
                             context,
@@ -352,6 +360,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               ],
             ),
           ),
+
+          // ── Help overlay ──────────────────────────────────────────────
+          if (_showHelp)
+            HelpOverlay(onClose: () => setState(() => _showHelp = false)),
 
           // ── Game Over overlay ─────────────────────────────────────────
           if (_gameOver)
