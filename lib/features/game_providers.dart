@@ -53,6 +53,9 @@ class GameNotifier extends Notifier<GameModel> {
     required MapSize size,
     double? startingBudget,
   }) {
+    _notifiedFirstBuilding = false;
+    _notifiedFirstLarge = false;
+    _lastInfraStats = const InfraStats();
     const generator = MapGenerator();
     final tileMap = generator.generate(seed: seed, size: size);
     state = GameModel(
@@ -110,7 +113,24 @@ class GameNotifier extends Notifier<GameModel> {
       industrialBuildings: industrial,
     );
 
+    final hadBuildings = _anyBuilding(tileMap);
+    final hadLarge = _anyLarge(tileMap);
     _developZones(tileMap, demand);
+    final hasBuildings = _anyBuilding(tileMap);
+    final hasLarge = _anyLarge(tileMap);
+
+    if (!hadBuildings && hasBuildings && !_notifiedFirstBuilding) {
+      _notifiedFirstBuilding = true;
+      ref.read(notificationQueueProvider.notifier).push(
+        const CityNotification(message: 'Die Stadt lebt! Erste Gebäude entstehen.'),
+      );
+    }
+    if (!hadLarge && hasLarge && !_notifiedFirstLarge) {
+      _notifiedFirstLarge = true;
+      ref.read(notificationQueueProvider.notifier).push(
+        const CityNotification(message: 'Erstes großes Gebäude! Die Stadt wächst.'),
+      );
+    }
 
     final economy = calculateEconomy(
       tileMap: tileMap,
@@ -160,6 +180,8 @@ class GameNotifier extends Notifier<GameModel> {
 
   static final _rng = Random();
   InfraStats _lastInfraStats = const InfraStats();
+  bool _notifiedFirstBuilding = false;
+  bool _notifiedFirstLarge = false;
   static const _popMilestones = [50, 100, 250, 500, 1000, 2500, 5000, 10000];
 
   void _checkMilestones(
@@ -388,6 +410,24 @@ class GameNotifier extends Notifier<GameModel> {
     } catch (_) {
       // Corrupt save — ignore
     }
+  }
+
+  bool _anyBuilding(TileMap tileMap) {
+    for (var row = 0; row < tileMap.height; row++) {
+      for (var col = 0; col < tileMap.width; col++) {
+        if (tileMap.getData((col: col, row: row)).buildingLevel.hasBuilding) return true;
+      }
+    }
+    return false;
+  }
+
+  bool _anyLarge(TileMap tileMap) {
+    for (var row = 0; row < tileMap.height; row++) {
+      for (var col = 0; col < tileMap.width; col++) {
+        if (tileMap.getData((col: col, row: row)).buildingLevel == BuildingLevel.large) return true;
+      }
+    }
+    return false;
   }
 
   int _countBuildingsByZone(TileMap tileMap, ZoneType zone) {
