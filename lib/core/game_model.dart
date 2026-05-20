@@ -38,6 +38,7 @@ class GameModel {
     this.loan = 0.0,
     this.infraStats = const InfraStats(),
     this.budgetHistory = const [],
+    this.cityName = 'Neustadt',
   });
 
   final TileMap tileMap;
@@ -51,6 +52,11 @@ class GameModel {
   final double loan;
   final InfraStats infraStats;
   final List<double> budgetHistory;
+  final String cityName;
+
+  static const int ticksPerYear = 20;
+
+  int get year => (tick / ticksPerYear).floor() + 1;
 
   static const double loanInterestRate = 0.005; // 0.5% per tick
   static const double maxLoan = 50000.0;
@@ -77,6 +83,7 @@ class GameModel {
     double? loan,
     InfraStats? infraStats,
     List<double>? budgetHistory,
+    String? cityName,
   }) =>
       GameModel(
         tileMap: tileMap ?? this.tileMap,
@@ -90,5 +97,6 @@ class GameModel {
         loan: loan ?? this.loan,
         infraStats: infraStats ?? this.infraStats,
         budgetHistory: budgetHistory ?? this.budgetHistory,
+        cityName: cityName ?? this.cityName,
       );
 }

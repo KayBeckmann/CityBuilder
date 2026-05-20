@@ -263,6 +263,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                     _HudBar(
                       budget: budget,
                       tick: model.tick,
+                      year: model.year,
+                      cityName: model.cityName,
                       population: population,
                       approval: approval,
                       onBudgetTap: () =>
@@ -451,6 +453,8 @@ class _HudBar extends StatelessWidget {
   const _HudBar({
     required this.budget,
     required this.tick,
+    required this.year,
+    required this.cityName,
     required this.population,
     required this.approval,
     required this.onBudgetTap,
@@ -458,6 +462,8 @@ class _HudBar extends StatelessWidget {
 
   final double budget;
   final int tick;
+  final int year;
+  final String cityName;
   final int population;
   final double approval;
   final VoidCallback onBudgetTap;
@@ -503,9 +509,14 @@ class _HudBar extends StatelessWidget {
             const Icon(Icons.access_time,
                 color: Colors.white38, size: 14),
             const SizedBox(width: 4),
-            Text('T$tick',
+            Text('J$year',
                 style: const TextStyle(
                     color: Colors.white38, fontSize: 13)),
+            const SizedBox(width: 4),
+            Text(cityName,
+                style: const TextStyle(
+                    color: Colors.white24, fontSize: 11,
+                    fontStyle: FontStyle.italic)),
           ],
         ),
       ),

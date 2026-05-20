@@ -30,6 +30,7 @@ enum Difficulty {
 
 class _NewGameDialogState extends ConsumerState<NewGameDialog> {
   final _seedCtrl = TextEditingController(text: '42');
+  final _nameCtrl = TextEditingController(text: 'Neustadt');
   MapSize _size = MapSize.medium;
   Difficulty _difficulty = Difficulty.normal;
   bool _generating = false;
@@ -37,16 +38,19 @@ class _NewGameDialogState extends ConsumerState<NewGameDialog> {
   @override
   void dispose() {
     _seedCtrl.dispose();
+    _nameCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _start() async {
     final seed = int.tryParse(_seedCtrl.text.trim()) ?? 42;
+    final name = _nameCtrl.text.trim().isEmpty ? 'Neustadt' : _nameCtrl.text.trim();
     setState(() => _generating = true);
     ref.read(gameProvider.notifier).newGame(
       seed: seed,
       size: _size,
       startingBudget: _difficulty.budget,
+      cityName: name,
     );
     if (mounted) Navigator.of(context).pop();
   }
@@ -65,6 +69,23 @@ class _NewGameDialogState extends ConsumerState<NewGameDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _Label('Stadtname'),
+            const SizedBox(height: 6),
+            TextField(
+              controller: _nameCtrl,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.white10,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(6),
+                  borderSide: BorderSide.none,
+                ),
+                hintText: 'Neustadt',
+                hintStyle: const TextStyle(color: Colors.white24),
+              ),
+            ),
+            const SizedBox(height: 16),
             _Label('Karten-Seed'),
             const SizedBox(height: 6),
             TextField(

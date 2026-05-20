@@ -52,6 +52,7 @@ class GameNotifier extends Notifier<GameModel> {
     required int seed,
     required MapSize size,
     double? startingBudget,
+    String cityName = 'Neustadt',
   }) {
     _notifiedFirstBuilding = false;
     _notifiedFirstLarge = false;
@@ -65,6 +66,7 @@ class GameNotifier extends Notifier<GameModel> {
       tileMap: tileMap,
       budget: startingBudget ?? GameModel.startingBudget,
       tick: 0,
+      cityName: cityName,
     );
   }
 

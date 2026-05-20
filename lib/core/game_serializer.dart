@@ -57,6 +57,7 @@ class GameSerializer {
       'satS': model.satisfaction.services,
       'approval': model.approvalRating,
       'loan': model.loan,
+      'cityName': model.cityName,
       'tiles': tiles,
     };
 
@@ -122,6 +123,7 @@ class GameSerializer {
       ),
       approvalRating: (json['approval'] as num).toDouble(),
       loan: (json['loan'] as num? ?? 0).toDouble(),
+      cityName: (json['cityName'] as String? ?? 'Neustadt'),
     );
   }
 }
