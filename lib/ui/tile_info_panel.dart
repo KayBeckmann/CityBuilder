@@ -113,6 +113,20 @@ class TileInfoPanel extends StatelessWidget {
               icon: Icons.water_damage_outlined,
               activeColor: Color(0xFF00BCD4),
             ),
+          if (data.hasPoliceStation)
+            const _InfraRow(
+              label: 'Polizei',
+              active: true,
+              icon: Icons.local_police_outlined,
+              activeColor: Color(0xFF1565C0),
+            ),
+          if (data.hasHospital)
+            const _InfraRow(
+              label: 'Krankenhaus',
+              active: true,
+              icon: Icons.local_hospital_outlined,
+              activeColor: Color(0xFFE53935),
+            ),
         ],
       ),
     );
