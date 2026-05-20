@@ -424,7 +424,9 @@ class GameNotifier extends Notifier<GameModel> {
     const cost = 3000.0;
     if (state.budget < cost) return false;
     final tileMap = state.tileMap;
-    if (!tileMap.contains(pos) || tileMap.getData(pos).hasWaterTower) return false;
+    if (!tileMap.contains(pos)) return false;
+    if (tileMap.get(pos) == TerrainType.water) return false;
+    if (tileMap.getData(pos).hasWaterTower) return false;
     tileMap.setWaterTower(pos);
     state = state.copyWith(budget: state.budget - cost);
     return true;
@@ -434,7 +436,9 @@ class GameNotifier extends Notifier<GameModel> {
     const cost = 5000.0;
     if (state.budget < cost) return false;
     final tileMap = state.tileMap;
-    if (!tileMap.contains(pos) || tileMap.getData(pos).hasPowerPlant) return false;
+    if (!tileMap.contains(pos)) return false;
+    if (tileMap.get(pos) == TerrainType.water) return false;
+    if (tileMap.getData(pos).hasPowerPlant) return false;
     tileMap.setPowerPlant(pos);
     state = state.copyWith(budget: state.budget - cost);
     return true;
