@@ -25,6 +25,13 @@ class GameModel {
   final double approvalRating;
 
   static const double startingBudget = 100000.0;
+  static const double gameOverBudgetThreshold = -5000.0;
+  static const double gameOverApprovalThreshold = 0.15;
+
+  bool get isBankrupt => budget < gameOverBudgetThreshold;
+  bool get isApprovalTooLow =>
+      tick > 20 && approvalRating < gameOverApprovalThreshold;
+  bool get isGameOver => isBankrupt || isApprovalTooLow;
 
   GameModel copyWith({
     TileMap? tileMap,

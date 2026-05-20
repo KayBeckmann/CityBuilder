@@ -2,6 +2,7 @@ import 'package:city_builder/core/building_level.dart';
 import 'package:city_builder/core/demand_system.dart';
 import 'package:city_builder/core/economy.dart';
 import 'package:city_builder/core/game_model.dart';
+import 'package:city_builder/core/game_serializer.dart';
 import 'package:city_builder/core/map_generator.dart';
 import 'package:city_builder/core/population_model.dart';
 import 'package:city_builder/core/satisfaction_system.dart';
@@ -123,6 +124,16 @@ class GameNotifier extends Notifier<GameModel> {
 
   void updateTaxRates(TaxRates rates) {
     state = state.copyWith(taxRates: rates);
+  }
+
+  String saveToJson() => const GameSerializer().serialize(state);
+
+  void loadFromJson(String json) {
+    try {
+      state = const GameSerializer().deserialize(json);
+    } catch (_) {
+      // Corrupt save — ignore
+    }
   }
 
   int _countBuildingsByZone(TileMap tileMap, ZoneType zone) {

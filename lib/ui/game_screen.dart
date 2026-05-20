@@ -2,14 +2,17 @@ import 'dart:async';
 
 import 'package:city_builder/core/audio_manager.dart';
 import 'package:city_builder/core/overlay_type.dart';
+import 'package:city_builder/core/world_position.dart';
 import 'package:city_builder/features/game_providers.dart';
 import 'package:city_builder/features/overlay_provider.dart';
 import 'package:city_builder/features/time_provider.dart';
 import 'package:city_builder/features/tool_provider.dart';
 import 'package:city_builder/game/city_game.dart';
 import 'package:city_builder/ui/budget_panel.dart';
+import 'package:city_builder/ui/game_over_screen.dart';
 import 'package:city_builder/ui/game_toolbar.dart';
 import 'package:city_builder/ui/new_game_dialog.dart';
+import 'package:city_builder/ui/save_load_dialog.dart';
 import 'package:city_builder/ui/settings_screen.dart';
 import 'package:city_builder/ui/tax_panel.dart';
 import 'package:city_builder/ui/tile_info_panel.dart';
@@ -32,6 +35,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   var _showTaxPanel = false;
   var _showTileInfo = false;
   var _tileInfoPos = (col: 0, row: 0);
+  var _gameOver = false;
 
   @override
   void initState() {
@@ -55,7 +59,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     super.dispose();
   }
 
-  void _handleTileTap(tilePos) {
+  void _handleTileTap(WorldPosition tilePos) {
     final tool = ref.read(toolProvider);
     final notifier = ref.read(gameProvider.notifier);
     final model = ref.read(gameProvider);
@@ -125,6 +129,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 
   void _handleSpeedChange(GameSpeed speed) {
+    if (_gameOver) return;
     ref.read(timeProvider.notifier).setSpeed(speed);
     _tickTimer?.cancel();
     final interval = speed.intervalMs;
@@ -135,9 +140,19 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           ref.read(gameProvider.notifier).tick();
           _refreshOverlay();
           _syncMapToGame();
+          if (ref.read(gameProvider).isGameOver) {
+            _tickTimer?.cancel();
+            setState(() => _gameOver = true);
+          }
         },
       );
     }
+  }
+
+  void _triggerNewGame() {
+    _tickTimer?.cancel();
+    setState(() => _gameOver = false);
+    NewGameDialog.show(context);
   }
 
   void _syncMapToGame() {
@@ -162,11 +177,21 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       widget.game.updateOverlay(next, computeOverlayValues(tileMap, next));
     });
 
-    // Sync new game map to Flame
+    // Sync new game map to Flame; reset game-over state on new game
     ref.listen(gameProvider.select((m) => m.tick), (prev, next) {
       if (next == 0) {
+        setState(() => _gameOver = false);
         final m = ref.read(gameProvider);
         widget.game.loadMap(m.tileMap);
+      }
+    });
+
+    // Stop timer on game over
+    ref.listen(gameProvider.select((m) => m.isGameOver), (_, isOver) {
+      if (isOver && !_gameOver) {
+        _tickTimer?.cancel();
+        ref.read(timeProvider.notifier).setSpeed(GameSpeed.paused);
+        setState(() => _gameOver = true);
       }
     });
 
@@ -200,8 +225,26 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                       child: Row(children: [
                         _HudIconButton(
                           icon: Icons.add_circle_outline,
-                          onTap: () => NewGameDialog.show(context),
+                          onTap: _triggerNewGame,
                           tooltip: 'Neues Spiel',
+                        ),
+                        const SizedBox(width: 4),
+                        _HudIconButton(
+                          icon: Icons.save_outlined,
+                          onTap: () => showDialog<void>(
+                            context: context,
+                            builder: (_) => const SaveDialog(),
+                          ),
+                          tooltip: 'Spielstand speichern',
+                        ),
+                        const SizedBox(width: 4),
+                        _HudIconButton(
+                          icon: Icons.upload_file_outlined,
+                          onTap: () => showDialog<void>(
+                            context: context,
+                            builder: (_) => const LoadDialog(),
+                          ),
+                          tooltip: 'Spielstand laden',
                         ),
                         const SizedBox(width: 4),
                         _HudIconButton(
@@ -275,6 +318,17 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               ],
             ),
           ),
+
+          // ── Game Over overlay ─────────────────────────────────────────
+          if (_gameOver)
+            GameOverScreen(
+              reason: model.isBankrupt
+                  ? GameOverReason.bankrupt
+                  : GameOverReason.approvalTooLow,
+              tick: model.tick,
+              population: model.population.total,
+              onNewGame: _triggerNewGame,
+            ),
 
           // ── Bottom chrome ─────────────────────────────────────────────
           Align(
