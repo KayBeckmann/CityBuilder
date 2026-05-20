@@ -15,6 +15,7 @@ class TileData {
     this.hasPowerLine = false,
     this.hasPipe = false,
     this.hasPowerPlant = false,
+    this.hasWaterTower = false,
   });
 
   TerrainType terrain;
@@ -26,6 +27,7 @@ class TileData {
   bool hasPowerLine;
   bool hasPipe;
   bool hasPowerPlant;
+  bool hasWaterTower;
 }
 
 class TileMap {
@@ -97,6 +99,36 @@ class TileMap {
   void setPowerPlant(WorldPosition pos, {bool value = true}) {
     assert(pos.isValid(width, height));
     _tiles[pos.row][pos.col].hasPowerPlant = value;
+  }
+
+  void setWaterTower(WorldPosition pos, {bool value = true}) {
+    assert(pos.isValid(width, height));
+    _tiles[pos.row][pos.col].hasWaterTower = value;
+  }
+
+  Set<WorldPosition> computeWateredTiles() {
+    final towers = <WorldPosition>[];
+    final pipes = <WorldPosition>{};
+    for (var row = 0; row < height; row++) {
+      for (var col = 0; col < width; col++) {
+        final pos = (col: col, row: row);
+        final data = _tiles[row][col];
+        if (data.hasWaterTower) towers.add(pos);
+        if (data.hasPipe || data.hasWaterTower) pipes.add(pos);
+      }
+    }
+    if (towers.isEmpty) return const {};
+
+    final watered = <WorldPosition>{};
+    final queue = [...towers];
+    while (queue.isNotEmpty) {
+      final pos = queue.removeLast();
+      if (!watered.add(pos)) continue;
+      for (final n in _neighbors(pos)) {
+        if (!watered.contains(n) && pipes.contains(n)) queue.add(n);
+      }
+    }
+    return watered;
   }
 
   Set<WorldPosition> computePoweredTiles() {

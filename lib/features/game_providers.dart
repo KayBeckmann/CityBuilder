@@ -183,7 +183,8 @@ class GameNotifier extends Notifier<GameModel> {
     int industrial,
   ) {
     final poweredTiles = tileMap.computePoweredTiles();
-    var buildings = 0, withRoad = 0, withPower = 0, withPipe = 0;
+    final wateredTiles = tileMap.computeWateredTiles();
+    var buildings = 0, withRoad = 0, withPower = 0, withWater = 0;
     for (var row = 0; row < tileMap.height; row++) {
       for (var col = 0; col < tileMap.width; col++) {
         final pos = (col: col, row: row);
@@ -192,7 +193,7 @@ class GameNotifier extends Notifier<GameModel> {
           buildings++;
           if (data.hasRoad) withRoad++;
           if (poweredTiles.contains(pos)) withPower++;
-          if (data.hasPipe) withPipe++;
+          if (wateredTiles.contains(pos)) withWater++;
         }
       }
     }
@@ -203,7 +204,7 @@ class GameNotifier extends Notifier<GameModel> {
 
     final roadCov = withRoad / buildings;
     final powerCov = withPower / buildings;
-    final pipeCov = withPipe / buildings;
+    final pipeCov = withWater / buildings;
 
     final employmentRatio = population > 0
         ? ((commercial + industrial) * 10.0 / population).clamp(0.0, 1.0)
@@ -236,6 +237,16 @@ class GameNotifier extends Notifier<GameModel> {
       budget: state.budget - repayAmount,
       loan: state.loan - repayAmount,
     );
+  }
+
+  bool placeWaterTower(WorldPosition pos) {
+    const cost = 3000.0;
+    if (state.budget < cost) return false;
+    final tileMap = state.tileMap;
+    if (!tileMap.contains(pos) || tileMap.getData(pos).hasWaterTower) return false;
+    tileMap.setWaterTower(pos);
+    state = state.copyWith(budget: state.budget - cost);
+    return true;
   }
 
   bool placePowerPlant(WorldPosition pos) {

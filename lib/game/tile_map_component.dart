@@ -30,6 +30,8 @@ class TileMapComponent extends Component with HasGameReference {
   static final _pipePaint = Paint()..color = const Color(0xFF1565C0);
   static final _powerPlantPaint = Paint()..color = const Color(0xFFFFCC02);
   static final _powerPlantBgPaint = Paint()..color = const Color(0xFF333300);
+  static final _waterTowerPaint = Paint()..color = const Color(0xFF00BCD4);
+  static final _waterTowerBgPaint = Paint()..color = const Color(0xFF002030);
 
   // Zone tints (shown when no overlay, no building sprite)
   static final _zoneTints = {
@@ -137,11 +139,9 @@ class TileMapComponent extends Component with HasGameReference {
           );
         }
         if (data.hasPowerPlant) {
-          // Power plant: dark background + lightning bolt indicator
           canvas.drawRect(rect.deflate(1), _powerPlantBgPaint);
           final cx = rect.center.dx;
           final cy = rect.center.dy;
-          // Draw a simple "⚡" shape
           final path = Path()
             ..moveTo(cx + 3, rect.top + 4)
             ..lineTo(cx - 2, cy)
@@ -151,6 +151,23 @@ class TileMapComponent extends Component with HasGameReference {
             ..lineTo(cx - 1, cy + 2)
             ..close();
           canvas.drawPath(path, _powerPlantPaint);
+        }
+        if (data.hasWaterTower) {
+          canvas.drawRect(rect.deflate(1), _waterTowerBgPaint);
+          // Draw a simple water drop shape
+          final cx = rect.center.dx;
+          final top = rect.top + 5;
+          final bottom = rect.bottom - 4;
+          final path = Path()
+            ..moveTo(cx, top)
+            ..lineTo(cx + 5, (top + bottom) * 0.55)
+            ..arcToPoint(
+              Offset(cx - 5, (top + bottom) * 0.55),
+              radius: const Radius.circular(5),
+              clockwise: false,
+            )
+            ..close();
+          canvas.drawPath(path, _waterTowerPaint);
         }
 
         // ── Overlay heatmap ──────────────────────────────────────────

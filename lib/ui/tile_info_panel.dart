@@ -1,3 +1,4 @@
+import 'package:city_builder/core/building_level.dart';
 import 'package:city_builder/core/tile_map.dart';
 import 'package:city_builder/core/world_position.dart';
 import 'package:flutter/material.dart';
@@ -58,6 +59,12 @@ class TileInfoPanel extends StatelessWidget {
               label: 'Kapazität',
               value: '${data.buildingLevel.capacity} EW',
             ),
+          if (data.zone != null && !data.buildingLevel.hasBuilding)
+            const _DevHint('Benötigt Nachfrage > 50%'),
+          if (data.zone != null &&
+              data.buildingLevel == BuildingLevel.small &&
+              !data.hasRoad)
+            const _DevHint('Straße nötig für größere Gebäude'),
           const SizedBox(height: 4),
           _InfraRow(
             label: 'Straße',
@@ -84,10 +91,43 @@ class TileInfoPanel extends StatelessWidget {
               icon: Icons.power_outlined,
               activeColor: Color(0xFFFFCC02),
             ),
+          if (data.hasWaterTower)
+            const _InfraRow(
+              label: 'Wasserturm',
+              active: true,
+              icon: Icons.water_damage_outlined,
+              activeColor: Color(0xFF00BCD4),
+            ),
         ],
       ),
     );
   }
+}
+
+class _DevHint extends StatelessWidget {
+  const _DevHint(this.message);
+  final String message;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: Row(
+          children: [
+            const Icon(Icons.info_outline,
+                color: Colors.orangeAccent, size: 11),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  color: Colors.orangeAccent,
+                  fontSize: 10,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
 }
 
 class _InfraRow extends StatelessWidget {

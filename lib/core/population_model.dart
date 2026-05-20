@@ -42,7 +42,10 @@ PopulationStats calculatePopulation({
   }
 
   final target = (capacity * satisfactionScore.clamp(0, 1)).round();
-  final delta = ((target - previous.total) * 0.1).round();
+  var delta = ((target - previous.total) * 0.1).round();
+  // Ensure at least 1 person moves in/out when there's room to grow/shrink
+  if (target > previous.total && delta == 0) delta = 1;
+  if (target < previous.total && delta == 0) delta = -1;
   final newTotal = (previous.total + delta).clamp(0, capacity);
 
   return previous.withNewTick(newTotal, capacity);

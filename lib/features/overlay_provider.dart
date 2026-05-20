@@ -20,9 +20,11 @@ Map<WorldPosition, double> computeOverlayValues(
 ) {
   if (overlay == OverlayType.none) return const {};
 
-  // Pre-compute powered tiles for the power overlay
+  // Pre-compute network tiles for power/water overlays
   final poweredTiles =
       overlay == OverlayType.power ? tileMap.computePoweredTiles() : null;
+  final wateredTiles =
+      overlay == OverlayType.water ? tileMap.computeWateredTiles() : null;
 
   final result = <WorldPosition, double>{};
 
@@ -47,7 +49,7 @@ Map<WorldPosition, double> computeOverlayValues(
         OverlayType.power => (poweredTiles?.contains(pos) ?? false)
             ? 1.0
             : (data.zone != null ? 0.15 : 0.0),
-        OverlayType.water => data.hasPipe
+        OverlayType.water => (wateredTiles?.contains(pos) ?? false)
             ? 1.0
             : (data.zone != null ? 0.15 : 0.0),
         OverlayType.traffic => () {
