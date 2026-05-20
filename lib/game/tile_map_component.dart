@@ -45,6 +45,12 @@ class TileMapComponent extends Component with HasGameReference {
     ..style = PaintingStyle.stroke;
   static final _schoolPaint = Paint()..color = const Color(0xFFFF9800);
   static final _schoolBgPaint = Paint()..color = const Color(0xFF1A0D00);
+  static final _firePaint = Paint()..color = const Color(0xFFDD2C00);
+  static final _fireBgPaint = Paint()..color = const Color(0xFF1A0000);
+  static final _fireSymbolPaint = Paint()
+    ..color = Colors.white
+    ..strokeWidth = 2.0
+    ..style = PaintingStyle.stroke;
 
   // Zone tints (shown when no overlay, no building sprite)
   static final _zoneTints = {
@@ -197,6 +203,16 @@ class TileMapComponent extends Component with HasGameReference {
           canvas.drawLine(Offset(cx - 5, bottom), Offset(cx, top), schoolPath);
           canvas.drawLine(Offset(cx + 5, bottom), Offset(cx, top), schoolPath);
           canvas.drawLine(Offset(cx - 3, bottom - 4), Offset(cx + 3, bottom - 4), schoolPath);
+        }
+        if (data.hasFireStation) {
+          canvas.drawRect(rect.deflate(1), _fireBgPaint);
+          canvas.drawRect(rect.deflate(4), _firePaint);
+          // Simple flame shape
+          final cx = rect.center.dx;
+          final cy = rect.center.dy;
+          canvas.drawLine(Offset(cx - 4, cy + 4), Offset(cx, cy - 5), _fireSymbolPaint);
+          canvas.drawLine(Offset(cx + 4, cy + 4), Offset(cx, cy - 5), _fireSymbolPaint);
+          canvas.drawLine(Offset(cx - 4, cy + 4), Offset(cx + 4, cy + 4), _fireSymbolPaint);
         }
         if (data.hasHospital) {
           canvas.drawRect(rect.deflate(1), _hospitalBgPaint);

@@ -23,7 +23,7 @@ class ToolPalette extends StatelessWidget {
       ToolType.zoneCommercial,
       ToolType.zoneIndustrial,
     ],
-    [ToolType.park, ToolType.school, ToolType.policeStation, ToolType.hospital, ToolType.demolishZone, ToolType.demolishInfra, ToolType.demolishAll],
+    [ToolType.park, ToolType.school, ToolType.fireStation, ToolType.policeStation, ToolType.hospital, ToolType.demolishZone, ToolType.demolishInfra, ToolType.demolishAll],
     [
       ToolType.powerPlant,
       ToolType.waterTower,

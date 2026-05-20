@@ -20,6 +20,7 @@ class TileData {
     this.hasPoliceStation = false,
     this.hasHospital = false,
     this.hasSchool = false,
+    this.hasFireStation = false,
   });
 
   TerrainType terrain;
@@ -36,6 +37,7 @@ class TileData {
   bool hasPoliceStation;
   bool hasHospital;
   bool hasSchool;
+  bool hasFireStation;
 }
 
 class TileMap {
@@ -125,6 +127,11 @@ class TileMap {
     _tiles[pos.row][pos.col].hasPoliceStation = value;
   }
 
+  void setFireStation(WorldPosition pos, {bool value = true}) {
+    assert(pos.isValid(width, height));
+    _tiles[pos.row][pos.col].hasFireStation = value;
+  }
+
   void setSchool(WorldPosition pos, {bool value = true}) {
     assert(pos.isValid(width, height));
     _tiles[pos.row][pos.col].hasSchool = value;
@@ -149,6 +156,7 @@ class TileMap {
     t.hasPoliceStation = false;
     t.hasHospital = false;
     t.hasSchool = false;
+    t.hasFireStation = false;
   }
 
   Set<WorldPosition> computeWateredTiles() {

@@ -272,8 +272,10 @@ class GameNotifier extends Notifier<GameModel> {
   void _triggerRandomEvent(NotificationQueue q) {
     if (state.population.total < 10) return;
 
-    // 15% chance of building fire event
-    if (_rng.nextDouble() < 0.15) {
+    // Fire event probability reduced by fire stations (5% per station, min 2%)
+    final fireStations = _countFireStations(state.tileMap);
+    final fireProb = (0.15 - fireStations * 0.05).clamp(0.02, 0.15);
+    if (_rng.nextDouble() < fireProb) {
       _triggerFireEvent(q);
       return;
     }
@@ -281,6 +283,16 @@ class GameNotifier extends Notifier<GameModel> {
     final event = _events[_rng.nextInt(_events.length)];
     state = state.copyWith(budget: state.budget + event.budget);
     q.push(CityNotification(message: event.msg, isWarning: event.warn));
+  }
+
+  int _countFireStations(TileMap tileMap) {
+    var count = 0;
+    for (var row = 0; row < tileMap.height; row++) {
+      for (var col = 0; col < tileMap.width; col++) {
+        if (tileMap.getData((col: col, row: row)).hasFireStation) count++;
+      }
+    }
+    return count;
   }
 
   void _triggerFireEvent(NotificationQueue q) {
@@ -333,6 +345,7 @@ class GameNotifier extends Notifier<GameModel> {
         if (data.hasPoliceStation) policeCount++;
         if (data.hasHospital) hospitalCount++;
         if (data.hasSchool) schoolCount++;
+        // Fire stations counted separately for fire probability
         if (data.zone != null && data.buildingLevel.hasBuilding) {
           buildings++;
           if (data.hasRoad) withRoad++;
@@ -414,6 +427,19 @@ class GameNotifier extends Notifier<GameModel> {
     return true;
   }
 
+  bool placeFireStation(WorldPosition pos) {
+    const cost = 4500.0;
+    if (state.budget < cost) return false;
+    final tileMap = state.tileMap;
+    if (!tileMap.contains(pos)) return false;
+    if (tileMap.get(pos) == TerrainType.water) return false;
+    if (tileMap.getData(pos).hasFireStation) return false;
+    tileMap.setFireStation(pos);
+    tileMap.setZone(pos, null);
+    state = state.copyWith(budget: state.budget - cost);
+    return true;
+  }
+
   bool placeSchool(WorldPosition pos) {
     const cost = 3500.0;
     if (state.budget < cost) return false;
@@ -465,6 +491,7 @@ class GameNotifier extends Notifier<GameModel> {
     t.hasPoliceStation = false;
     t.hasHospital = false;
     t.hasSchool = false;
+    t.hasFireStation = false;
     // Power plants and water towers kept intact (use demolishAll to remove them)
     state = state.copyWith();
   }

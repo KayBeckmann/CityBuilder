@@ -35,6 +35,7 @@ class GameSerializer {
           if (data.hasPoliceStation) 'ps': 1,
           if (data.hasHospital) 'hp': 1,
           if (data.hasSchool) 'sc': 1,
+          if (data.hasFireStation) 'fs': 1,
         });
       }
       tiles.add(rowList);
@@ -96,6 +97,7 @@ class GameSerializer {
         if (cell.containsKey('ps')) tileMap.setPoliceStation(pos);
         if (cell.containsKey('hp')) tileMap.setHospital(pos);
         if (cell.containsKey('sc')) tileMap.setSchool(pos);
+        if (cell.containsKey('fs')) tileMap.setFireStation(pos);
       }
     }
 

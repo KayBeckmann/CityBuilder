@@ -83,6 +83,7 @@ EconomyResult calculateEconomy({
       if (data.hasPoliceStation) operatingCosts += 8.0;
       if (data.hasHospital) operatingCosts += 12.0;
       if (data.hasSchool) operatingCosts += 6.0;
+      if (data.hasFireStation) operatingCosts += 7.0;
     }
   }
 
