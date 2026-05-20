@@ -304,6 +304,18 @@ class GameNotifier extends Notifier<GameModel> {
     return true;
   }
 
+  void demolishInfra(WorldPosition pos) {
+    final tileMap = state.tileMap;
+    if (!tileMap.contains(pos)) return;
+    final t = tileMap.getData(pos);
+    t.hasRoad = false;
+    t.hasPowerLine = false;
+    t.hasPipe = false;
+    // Power plants and water towers kept intact (use demolishAll to remove them)
+    // Trigger state update (TileData is mutable, need to notify Riverpod)
+    state = state.copyWith();
+  }
+
   bool demolishAll(WorldPosition pos) {
     const cost = 50.0;
     if (state.budget < cost) return false;

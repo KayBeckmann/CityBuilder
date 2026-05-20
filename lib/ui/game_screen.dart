@@ -88,6 +88,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       case ToolType.demolishZone:
         notifier.setZone(tilePos, null);
 
+      case ToolType.demolishInfra:
+        notifier.demolishInfra(tilePos);
+
       case ToolType.demolishAll:
         if (!notifier.demolishAll(tilePos)) {
           _flashError('Nicht genug Budget!');
