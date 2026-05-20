@@ -28,6 +28,12 @@ const Map<TerrainType, double> terrainEditCost = {
 
 const double kZoneCostPerTile = 100.0;
 
+const Map<ZoneType, double> kZoneCost = {
+  ZoneType.residential: 100.0,
+  ZoneType.commercial: 150.0,
+  ZoneType.industrial: 200.0,
+};
+
 const _demandSystem = DemandSystem();
 
 class GameNotifier extends Notifier<GameModel> {
@@ -78,14 +84,15 @@ class GameNotifier extends Notifier<GameModel> {
   }
 
   bool setZone(WorldPosition pos, ZoneType? zone) {
-    if (state.budget < kZoneCostPerTile) return false;
+    final cost = zone != null ? (kZoneCost[zone] ?? kZoneCostPerTile) : 0.0;
+    if (zone != null && state.budget < cost) return false;
     final tileMap = state.tileMap;
     if (!tileMap.contains(pos)) return false;
     if (tileMap.get(pos) == TerrainType.water) return false;
 
     tileMap.setZone(pos, zone);
     if (zone != null) {
-      state = state.copyWith(budget: state.budget - kZoneCostPerTile);
+      state = state.copyWith(budget: state.budget - cost);
     }
     return true;
   }

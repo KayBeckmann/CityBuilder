@@ -12,6 +12,7 @@ import 'package:city_builder/game/city_game.dart';
 import 'package:city_builder/ui/budget_panel.dart';
 import 'package:city_builder/ui/game_over_screen.dart';
 import 'package:city_builder/ui/help_overlay.dart';
+import 'package:city_builder/ui/minimap.dart';
 import 'package:city_builder/ui/game_toolbar.dart';
 import 'package:city_builder/ui/new_game_dialog.dart';
 import 'package:city_builder/ui/save_load_dialog.dart';
@@ -39,6 +40,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   var _tileInfoPos = (col: 0, row: 0);
   var _gameOver = false;
   var _showHelp = false;
+  var _showMinimap = false;
 
   @override
   void initState() {
@@ -303,6 +305,12 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                         ),
                         const SizedBox(width: 4),
                         _HudIconButton(
+                          icon: Icons.map_outlined,
+                          onTap: () => setState(() => _showMinimap = !_showMinimap),
+                          tooltip: 'Minimap',
+                        ),
+                        const SizedBox(width: 4),
+                        _HudIconButton(
                           icon: Icons.help_outline,
                           onTap: () => setState(() => _showHelp = !_showHelp),
                           tooltip: 'Hilfe',
@@ -360,6 +368,17 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               ],
             ),
           ),
+
+          // ── Minimap ───────────────────────────────────────────────────
+          if (_showMinimap)
+            Positioned(
+              bottom: 90,
+              left: 0,
+              child: Minimap(
+                tileMap: model.tileMap,
+                onClose: () => setState(() => _showMinimap = false),
+              ),
+            ),
 
           // ── Help overlay ──────────────────────────────────────────────
           if (_showHelp)
