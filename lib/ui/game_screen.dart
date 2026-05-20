@@ -11,6 +11,7 @@ import 'package:city_builder/ui/budget_panel.dart';
 import 'package:city_builder/ui/game_toolbar.dart';
 import 'package:city_builder/ui/new_game_dialog.dart';
 import 'package:city_builder/ui/settings_screen.dart';
+import 'package:city_builder/ui/tax_panel.dart';
 import 'package:city_builder/ui/tile_info_panel.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +29,7 @@ class GameScreen extends ConsumerStatefulWidget {
 class _GameScreenState extends ConsumerState<GameScreen> {
   Timer? _tickTimer;
   var _showBudget = false;
+  var _showTaxPanel = false;
   var _showTileInfo = false;
   var _tileInfoPos = (col: 0, row: 0);
 
@@ -203,6 +205,15 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                         ),
                         const SizedBox(width: 4),
                         _HudIconButton(
+                          icon: Icons.percent_outlined,
+                          onTap: () => setState(() {
+                            _showTaxPanel = !_showTaxPanel;
+                            _showBudget = false;
+                          }),
+                          tooltip: 'Steuersätze',
+                        ),
+                        const SizedBox(width: 4),
+                        _HudIconButton(
                           icon: audioMuted
                               ? Icons.volume_off
                               : Icons.volume_up_outlined,
@@ -232,6 +243,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   BudgetPanel(
                     model: model,
                     onClose: () => setState(() => _showBudget = false),
+                  ),
+
+                // Tax panel
+                if (_showTaxPanel)
+                  TaxPanel(
+                    onClose: () =>
+                        setState(() => _showTaxPanel = false),
                   ),
 
                 // Tile info (inspect tool)

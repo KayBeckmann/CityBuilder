@@ -1,3 +1,4 @@
+import 'package:city_builder/core/building_level.dart';
 import 'package:city_builder/core/overlay_type.dart';
 import 'package:city_builder/core/tile_map.dart';
 import 'package:city_builder/core/world_position.dart';
@@ -20,11 +21,27 @@ class TileMapComponent extends Component with HasGameReference {
     ..style = PaintingStyle.stroke
     ..strokeWidth = _borderWidth;
 
-  static final _zoneOverlayPaints = {
-    ZoneType.residential: Paint()..color = const Color(0x3032CD32),
-    ZoneType.commercial: Paint()..color = const Color(0x300000FF),
-    ZoneType.industrial: Paint()..color = const Color(0x30FFA500),
+  // Zone tints (shown when no overlay, no building sprite)
+  static final _zoneTints = {
+    ZoneType.residential: const Color(0x4032CD32),
+    ZoneType.commercial: const Color(0x402196F3),
+    ZoneType.industrial: const Color(0x40FFA500),
   };
+
+  // Building level debug colors (fallback when sprites not loaded)
+  static final _buildingColors = {
+    (ZoneType.residential, BuildingLevel.small): const Color(0xFFAED581),
+    (ZoneType.residential, BuildingLevel.medium): const Color(0xFF7CB342),
+    (ZoneType.residential, BuildingLevel.large): const Color(0xFF33691E),
+    (ZoneType.commercial, BuildingLevel.small): const Color(0xFF64B5F6),
+    (ZoneType.commercial, BuildingLevel.medium): const Color(0xFF1E88E5),
+    (ZoneType.commercial, BuildingLevel.large): const Color(0xFF0D47A1),
+    (ZoneType.industrial, BuildingLevel.small): const Color(0xFFFFCC80),
+    (ZoneType.industrial, BuildingLevel.medium): const Color(0xFFFF9800),
+    (ZoneType.industrial, BuildingLevel.large): const Color(0xFFE65100),
+  };
+
+  final _labelPainter = TextPainter(textDirection: TextDirection.ltr);
 
   void updateOverlay(OverlayType overlay, Map<WorldPosition, double> values) {
     activeOverlay = overlay;
@@ -36,6 +53,8 @@ class TileMapComponent extends Component with HasGameReference {
     final camera = game.camera;
     final visibleRect = camera.visibleWorldRect;
     final registry = SpriteRegistry.I;
+    final zoom = camera.viewfinder.zoom;
+    final showLabels = zoom >= 1.5;
 
     final firstCol = (visibleRect.left / kTileSize).floor().clamp(0, tileMap.width - 1);
     final lastCol = (visibleRect.right / kTileSize).ceil().clamp(0, tileMap.width);
@@ -58,22 +77,26 @@ class TileMapComponent extends Component with HasGameReference {
           canvas.drawRect(rect, Paint()..color = data.terrain.debugColor);
         }
 
-        // ── Building sprite ──────────────────────────────────────────
-        if (data.zone != null && data.buildingLevel.hasBuilding) {
-          final buildingSprite = registry.buildingSprite(data.zone!, data.buildingLevel);
-          if (buildingSprite != null) {
-            buildingSprite.render(canvas, position: screenPos, size: destSize);
+        // ── Zone / Building ──────────────────────────────────────────
+        final zone = data.zone;
+        if (zone != null) {
+          if (data.buildingLevel.hasBuilding) {
+            final buildingSprite = registry.buildingSprite(zone, data.buildingLevel);
+            if (buildingSprite != null) {
+              buildingSprite.render(canvas, position: screenPos, size: destSize);
+            } else {
+              // Fallback: colored fill + height indicator
+              final color = _buildingColors[(zone, data.buildingLevel)] ??
+                  (_zoneTints[zone] ?? Colors.grey);
+              canvas.drawRect(rect, Paint()..color = color);
+              _drawBuildingHeight(canvas, rect, data.buildingLevel);
+            }
           } else if (activeOverlay == OverlayType.none) {
-            final zonePaint = _zoneOverlayPaints[data.zone!];
-            if (zonePaint != null) canvas.drawRect(rect, zonePaint);
+            // Empty zone — subtle tint + dashed border
+            final tint = _zoneTints[zone];
+            if (tint != null) canvas.drawRect(rect, Paint()..color = tint);
+            _drawZoneBorder(canvas, rect, zone);
           }
-        }
-
-        // ── Zone tint (no sprites loaded yet) ────────────────────────
-        if (data.zone != null && !data.buildingLevel.hasBuilding &&
-            activeOverlay == OverlayType.none) {
-          final zonePaint = _zoneOverlayPaints[data.zone!];
-          if (zonePaint != null) canvas.drawRect(rect, zonePaint);
         }
 
         // ── Overlay heatmap ──────────────────────────────────────────
@@ -87,7 +110,61 @@ class TileMapComponent extends Component with HasGameReference {
 
         // ── Grid lines ────────────────────────────────────────────────
         canvas.drawRect(rect, _borderPaint);
+
+        // ── Zone label (high zoom only) ───────────────────────────────
+        if (showLabels && zone != null && activeOverlay == OverlayType.none) {
+          _drawLabel(canvas, rect, zone.label);
+        }
       }
     }
+  }
+
+  void _drawBuildingHeight(Canvas canvas, Rect tile, BuildingLevel level) {
+    // Draw "shadow/depth" lines to indicate building height
+    final bars = level.index; // 1=small, 2=medium, 3=large
+    const barH = 3.0;
+    const gap = 2.0;
+    final paint = Paint()..color = Colors.black38;
+    for (var i = 0; i < bars; i++) {
+      final y = tile.bottom - 4 - i * (barH + gap);
+      canvas.drawRect(
+        Rect.fromLTWH(tile.left + 2, y, tile.width - 4, barH),
+        paint,
+      );
+    }
+  }
+
+  void _drawZoneBorder(Canvas canvas, Rect tile, ZoneType zone) {
+    final color = switch (zone) {
+      ZoneType.residential => const Color(0xFF4CAF50),
+      ZoneType.commercial => const Color(0xFF2196F3),
+      ZoneType.industrial => const Color(0xFFFF9800),
+    };
+    canvas.drawRect(
+      tile,
+      Paint()
+        ..color = color.withAlpha(180)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.0,
+    );
+  }
+
+  void _drawLabel(Canvas canvas, Rect tile, String text) {
+    _labelPainter.text = TextSpan(
+      text: text,
+      style: const TextStyle(
+        color: Colors.white70,
+        fontSize: 8,
+        fontWeight: FontWeight.w700,
+      ),
+    );
+    _labelPainter.layout();
+    _labelPainter.paint(
+      canvas,
+      Offset(
+        tile.left + (tile.width - _labelPainter.width) / 2,
+        tile.top + (tile.height - _labelPainter.height) / 2,
+      ),
+    );
   }
 }
