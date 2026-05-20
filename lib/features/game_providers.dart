@@ -308,6 +308,8 @@ class GameNotifier extends Notifier<GameModel> {
       powerPct: buildings > 0 ? (withPower * 100 ~/ buildings) : 0,
       waterPct: buildings > 0 ? (withWater * 100 ~/ buildings) : 0,
       parks: parkCount,
+      policeStations: policeCount,
+      hospitals: hospitalCount,
     );
 
     if (buildings == 0) {

@@ -107,6 +107,10 @@ class BudgetPanel extends ConsumerWidget {
           _Row(label: 'Strom', value: '${model.infraStats.powerPct}%', color: const Color(0xFFFFEE58)),
           _Row(label: 'Wasser', value: '${model.infraStats.waterPct}%', color: const Color(0xFF42A5F5)),
           _Row(label: 'Parks', value: '${model.infraStats.parks}', color: const Color(0xFF00C853)),
+          if (model.infraStats.policeStations > 0)
+            _Row(label: 'Polizei', value: '${model.infraStats.policeStations}', color: const Color(0xFF1565C0)),
+          if (model.infraStats.hospitals > 0)
+            _Row(label: 'Krankenh.', value: '${model.infraStats.hospitals}', color: const Color(0xFFE53935)),
 
           const SizedBox(height: 8),
           const Divider(color: Colors.white12, height: 1),

@@ -10,6 +10,8 @@ class InfraStats {
     this.powerPct = 0,
     this.waterPct = 0,
     this.parks = 0,
+    this.policeStations = 0,
+    this.hospitals = 0,
   });
 
   final int buildings;
@@ -17,6 +19,8 @@ class InfraStats {
   final int powerPct;
   final int waterPct;
   final int parks;
+  final int policeStations;
+  final int hospitals;
 }
 
 class GameModel {
