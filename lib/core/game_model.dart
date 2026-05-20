@@ -1,6 +1,7 @@
 import 'package:city_builder/core/economy.dart';
 import 'package:city_builder/core/population_model.dart';
 import 'package:city_builder/core/satisfaction_system.dart';
+import 'package:city_builder/core/tech_tree.dart';
 import 'package:city_builder/core/tile_map.dart';
 
 class InfraStats {
@@ -28,7 +29,7 @@ class InfraStats {
 }
 
 class GameModel {
-  const GameModel({
+  GameModel({
     required this.tileMap,
     required this.budget,
     required this.tick,
@@ -44,7 +45,8 @@ class GameModel {
     this.demandR = 0.0,
     this.demandC = 0.0,
     this.demandI = 0.0,
-  });
+    TechTreeState? techTree,
+  }) : techTree = techTree ?? TechTreeState();
 
   final TileMap tileMap;
   final double budget;
@@ -61,6 +63,7 @@ class GameModel {
   final double demandR;
   final double demandC;
   final double demandI;
+  final TechTreeState techTree;
 
   static const int ticksPerYear = 20;
 
@@ -95,6 +98,7 @@ class GameModel {
     double? demandR,
     double? demandC,
     double? demandI,
+    TechTreeState? techTree,
   }) =>
       GameModel(
         tileMap: tileMap ?? this.tileMap,
@@ -112,5 +116,6 @@ class GameModel {
         demandR: demandR ?? this.demandR,
         demandC: demandC ?? this.demandC,
         demandI: demandI ?? this.demandI,
+        techTree: techTree ?? this.techTree,
       );
 }

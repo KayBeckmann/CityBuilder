@@ -6,6 +6,7 @@ import 'package:city_builder/core/economy.dart';
 import 'package:city_builder/core/game_model.dart';
 import 'package:city_builder/core/game_serializer.dart';
 import 'package:city_builder/core/map_generator.dart';
+import 'package:city_builder/core/tech_tree.dart';
 import 'package:city_builder/core/population_model.dart';
 import 'package:city_builder/core/satisfaction_system.dart';
 import 'package:city_builder/core/terrain_type.dart';
@@ -142,8 +143,28 @@ class GameNotifier extends Notifier<GameModel> {
       taxRates: state.taxRates,
     );
 
-    final (newSatisfaction, infraStats) = _computeSatisfaction(tileMap, currentPop, commercial, industrial);
+    final (rawSatisfaction, infraStats) = _computeSatisfaction(tileMap, currentPop, commercial, industrial);
     _lastInfraStats = infraStats;
+
+    final techTree = state.techTree;
+    final prevResearched = Set<TechNode>.from(techTree.researched);
+    final educationIndex = (_lastInfraStats.schools * 0.1).clamp(0.0, 1.0);
+    techTree.tickResearch(
+      techTree.researchPointsGenerated(
+        educationIndex: educationIndex,
+        universityCount: 0,
+      ),
+    );
+    final newlyResearched = techTree.researched.difference(prevResearched);
+
+    final newSatisfaction = techTree.isResearched(TechNode.asphaltRoads)
+        ? SatisfactionFactors(
+            employment: rawSatisfaction.employment,
+            housing: (rawSatisfaction.housing + 0.05).clamp(0.0, 1.0),
+            services: rawSatisfaction.services,
+          )
+        : rawSatisfaction;
+
     final satisfactionScore = calculateSatisfaction(newSatisfaction);
 
     final newPopulation = calculatePopulation(
@@ -163,7 +184,10 @@ class GameNotifier extends Notifier<GameModel> {
     final prevApproval = state.approvalRating;
     final loanInterest = state.loan * GameModel.loanInterestRate;
 
-    final newBudget = state.budget + economy.netBalance - loanInterest;
+    final hiBonus = techTree.isResearched(TechNode.hightechIndustry)
+        ? economy.taxIncome * 0.05
+        : 0.0;
+    final newBudget = state.budget + economy.netBalance + hiBonus - loanInterest;
     final newHistory = [...state.budgetHistory, newBudget];
     final budgetHistory = newHistory.length > 20
         ? newHistory.sublist(newHistory.length - 20)
@@ -184,6 +208,15 @@ class GameNotifier extends Notifier<GameModel> {
     );
 
     _checkMilestones(prevPop, newPopulation.total, prevBudget, prevApproval, approval);
+
+    if (newlyResearched.isNotEmpty) {
+      final q = ref.read(notificationQueueProvider.notifier);
+      for (final node in newlyResearched) {
+        q.push(CityNotification(
+          message: 'Forschung abgeschlossen: ${_techNodeLabel(node)}!',
+        ));
+      }
+    }
   }
 
   static final _rng = Random();
@@ -594,6 +627,24 @@ class GameNotifier extends Notifier<GameModel> {
     state = state.copyWith(budget: state.budget - kPipeCost);
     return true;
   }
+
+  bool researchTech(TechNode node) {
+    final result = state.techTree.startResearch(node, state.population.total);
+    if (result) state = state.copyWith();
+    return result;
+  }
+
+  static String _techNodeLabel(TechNode node) => switch (node) {
+    TechNode.solarPower => 'Solarenergie',
+    TechNode.asphaltRoads => 'Asphaltstraßen',
+    TechNode.school => 'Bildungsreform',
+    TechNode.nuclearPower => 'Kernkraft',
+    TechNode.university => 'Universität',
+    TechNode.railSignaling => 'Schienensignaltechnik',
+    TechNode.spaceportPrep => 'Raumfahrtbasis',
+    TechNode.hightechIndustry => 'Hightech-Industrie',
+    TechNode.subway => 'U-Bahn',
+  };
 
   String saveToJson() => const GameSerializer().serialize(state);
 

@@ -18,6 +18,7 @@ import 'package:city_builder/ui/new_game_dialog.dart';
 import 'package:city_builder/ui/save_load_dialog.dart';
 import 'package:city_builder/ui/settings_screen.dart';
 import 'package:city_builder/ui/tax_panel.dart';
+import 'package:city_builder/ui/tech_panel.dart';
 import 'package:city_builder/ui/tile_info_panel.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
@@ -36,6 +37,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   Timer? _tickTimer;
   var _showBudget = false;
   var _showTaxPanel = false;
+  var _showTechPanel = false;
   var _showTileInfo = false;
   var _tileInfoPos = (col: 0, row: 0);
   var _gameOver = false;
@@ -306,8 +308,19 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                           onTap: () => setState(() {
                             _showTaxPanel = !_showTaxPanel;
                             _showBudget = false;
+                            _showTechPanel = false;
                           }),
                           tooltip: 'Steuersätze',
+                        ),
+                        const SizedBox(width: 4),
+                        _HudIconButton(
+                          icon: Icons.science_outlined,
+                          onTap: () => setState(() {
+                            _showTechPanel = !_showTechPanel;
+                            _showTaxPanel = false;
+                            _showBudget = false;
+                          }),
+                          tooltip: 'Forschung',
                         ),
                         const SizedBox(width: 4),
                         _HudIconButton(
@@ -359,6 +372,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   TaxPanel(
                     onClose: () =>
                         setState(() => _showTaxPanel = false),
+                  ),
+
+                // Tech panel
+                if (_showTechPanel)
+                  TechPanel(
+                    onClose: () =>
+                        setState(() => _showTechPanel = false),
                   ),
 
                 // Tile info (inspect tool)

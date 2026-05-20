@@ -7,6 +7,7 @@ import 'package:city_builder/core/map_generator.dart';
 import 'package:city_builder/core/population_model.dart';
 import 'package:city_builder/core/resource_type.dart';
 import 'package:city_builder/core/satisfaction_system.dart';
+import 'package:city_builder/core/tech_tree.dart';
 import 'package:city_builder/core/terrain_type.dart';
 import 'package:city_builder/core/tile_map.dart';
 import 'package:city_builder/core/zone_type.dart';
@@ -59,6 +60,10 @@ class GameSerializer {
       'approval': model.approvalRating,
       'loan': model.loan,
       'cityName': model.cityName,
+      'techResearched': model.techTree.researched.map((n) => n.index).toList(),
+      'techProgress': model.techTree.progress
+          .map((k, v) => MapEntry(k.index.toString(), v)),
+      'techPoints': model.techTree.researchPoints,
       'tiles': tiles,
     };
 
@@ -104,6 +109,23 @@ class GameSerializer {
     final historyRaw = json['popHistory'] as List<dynamic>;
     final history = historyRaw.map((e) => e as int).toList();
 
+    TechTreeState? techTree;
+    if (json.containsKey('techResearched')) {
+      final researched = (json['techResearched'] as List<dynamic>)
+          .map((i) => TechNode.values[i as int])
+          .toSet();
+      final progressRaw =
+          (json['techProgress'] as Map<String, dynamic>?) ?? {};
+      final progress = progressRaw.map(
+        (k, v) => MapEntry(TechNode.values[int.parse(k)], (v as num).toDouble()),
+      );
+      techTree = TechTreeState(
+        researched: researched,
+        progress: progress,
+        researchPoints: (json['techPoints'] as num? ?? 0).toDouble(),
+      );
+    }
+
     return GameModel(
       tileMap: tileMap,
       budget: (json['budget'] as num).toDouble(),
@@ -126,6 +148,7 @@ class GameSerializer {
       approvalRating: (json['approval'] as num).toDouble(),
       loan: (json['loan'] as num? ?? 0).toDouble(),
       cityName: (json['cityName'] as String? ?? 'Neustadt'),
+      techTree: techTree,
     );
   }
 }
