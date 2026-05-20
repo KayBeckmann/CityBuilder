@@ -6,13 +6,14 @@ void main() {
   const system = DemandSystem();
 
   group('DemandSystem', () {
-    test('demand is 0 when population is 0', () {
+    test('residential demand is seeded when population is 0', () {
       final demand = system.calculate(
         population: 0,
         commercialBuildings: 0,
         industrialBuildings: 0,
       );
-      expect(demand.residential, 0);
+      // Initial seed so first residential buildings can develop
+      expect(demand.residential, greaterThan(0.5));
       expect(demand.commercial, 0);
       expect(demand.industrial, 0);
     });

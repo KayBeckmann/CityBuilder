@@ -1,18 +1,21 @@
 import 'package:city_builder/core/game_model.dart';
+import 'package:city_builder/features/game_providers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class BudgetPanel extends StatelessWidget {
+class BudgetPanel extends ConsumerWidget {
   const BudgetPanel({super.key, required this.model, required this.onClose});
 
   final GameModel model;
   final VoidCallback onClose;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final eco = model.lastEconomy;
     final pop = model.population;
     final approval = model.approvalRating;
     final sat = model.satisfaction;
+    final notifier = ref.read(gameProvider.notifier);
 
     return Container(
       width: 240,
@@ -96,6 +99,44 @@ class BudgetPanel extends StatelessWidget {
           _SatisfactionBar(label: 'Wohnen', value: sat.housing, color: const Color(0xFF4CAF50)),
           _SatisfactionBar(label: 'Services', value: sat.services, color: const Color(0xFF2196F3)),
 
+          const SizedBox(height: 8),
+          const Divider(color: Colors.white12, height: 1),
+          const SizedBox(height: 8),
+
+          // Loan
+          _Row(
+            label: 'Kredit',
+            value: '\$${model.loan.toStringAsFixed(0)}',
+            color: model.loan > 0 ? Colors.orangeAccent : Colors.white38,
+          ),
+          if (model.loan > 0)
+            _Row(
+              label: 'Zinsen/Tick',
+              value: '-\$${(model.loan * GameModel.loanInterestRate).toStringAsFixed(1)}',
+              color: Colors.orangeAccent,
+            ),
+          const SizedBox(height: 6),
+          Row(children: [
+            Expanded(
+              child: _LoanButton(
+                label: '+\$${GameModel.loanChunkSize.toInt()}',
+                enabled: model.loan < GameModel.maxLoan,
+                color: Colors.orangeAccent,
+                onTap: () => notifier.takeLoan(),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: _LoanButton(
+                label: 'Zurückzahlen',
+                enabled: model.loan > 0 &&
+                    model.budget >= GameModel.loanChunkSize,
+                color: Colors.greenAccent,
+                onTap: () => notifier.repayLoan(),
+              ),
+            ),
+          ]),
+
           // Trend sparkline
           if (pop.history.length > 1) ...[
             const SizedBox(height: 8),
@@ -152,6 +193,45 @@ class _Row extends StatelessWidget {
                     fontSize: 11,
                     fontWeight: FontWeight.w600)),
           ],
+        ),
+      );
+}
+
+class _LoanButton extends StatelessWidget {
+  const _LoanButton({
+    required this.label,
+    required this.enabled,
+    required this.color,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool enabled;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+        onTap: enabled ? onTap : null,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 5),
+          decoration: BoxDecoration(
+            color: enabled ? color.withAlpha(30) : Colors.transparent,
+            borderRadius: BorderRadius.circular(5),
+            border: Border.all(
+              color: enabled ? color.withAlpha(150) : Colors.white12,
+            ),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: enabled ? color : Colors.white24,
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
         ),
       );
 }

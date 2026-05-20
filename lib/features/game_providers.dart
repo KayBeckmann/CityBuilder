@@ -122,10 +122,11 @@ class GameNotifier extends Notifier<GameModel> {
     final prevPop = state.population.total;
     final prevBudget = state.budget;
     final prevApproval = state.approvalRating;
+    final loanInterest = state.loan * GameModel.loanInterestRate;
 
     state = state.copyWith(
       tick: state.tick + 1,
-      budget: state.budget + economy.netBalance,
+      budget: state.budget + economy.netBalance - loanInterest,
       lastEconomy: economy,
       population: newPopulation,
       satisfaction: newSatisfaction,
@@ -215,6 +216,24 @@ class GameNotifier extends Notifier<GameModel> {
 
   void updateTaxRates(TaxRates rates) {
     state = state.copyWith(taxRates: rates);
+  }
+
+  bool takeLoan() {
+    if (state.loan >= GameModel.maxLoan) return false;
+    state = state.copyWith(
+      budget: state.budget + GameModel.loanChunkSize,
+      loan: state.loan + GameModel.loanChunkSize,
+    );
+    return true;
+  }
+
+  void repayLoan() {
+    final repayAmount = GameModel.loanChunkSize.clamp(0, state.loan);
+    if (repayAmount <= 0 || state.budget < repayAmount) return;
+    state = state.copyWith(
+      budget: state.budget - repayAmount,
+      loan: state.loan - repayAmount,
+    );
   }
 
   bool placeRoad(WorldPosition pos) {

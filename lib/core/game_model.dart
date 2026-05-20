@@ -13,6 +13,7 @@ class GameModel {
     this.population = const PopulationStats(total: 0, capacity: 0, history: []),
     this.satisfaction = const SatisfactionFactors(),
     this.approvalRating = 0.5,
+    this.loan = 0.0,
   });
 
   final TileMap tileMap;
@@ -23,6 +24,11 @@ class GameModel {
   final PopulationStats population;
   final SatisfactionFactors satisfaction;
   final double approvalRating;
+  final double loan;
+
+  static const double loanInterestRate = 0.005; // 0.5% per tick
+  static const double maxLoan = 50000.0;
+  static const double loanChunkSize = 10000.0;
 
   static const double startingBudget = 100000.0;
   static const double gameOverBudgetThreshold = -5000.0;
@@ -42,6 +48,7 @@ class GameModel {
     PopulationStats? population,
     SatisfactionFactors? satisfaction,
     double? approvalRating,
+    double? loan,
   }) =>
       GameModel(
         tileMap: tileMap ?? this.tileMap,
@@ -52,5 +59,6 @@ class GameModel {
         population: population ?? this.population,
         satisfaction: satisfaction ?? this.satisfaction,
         approvalRating: approvalRating ?? this.approvalRating,
+        loan: loan ?? this.loan,
       );
 }

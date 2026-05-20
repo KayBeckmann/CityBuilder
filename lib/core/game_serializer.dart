@@ -50,6 +50,7 @@ class GameSerializer {
       'satH': model.satisfaction.housing,
       'satS': model.satisfaction.services,
       'approval': model.approvalRating,
+      'loan': model.loan,
       'tiles': tiles,
     };
 
@@ -108,6 +109,7 @@ class GameSerializer {
         services: (json['satS'] as num).toDouble(),
       ),
       approvalRating: (json['approval'] as num).toDouble(),
+      loan: (json['loan'] as num? ?? 0).toDouble(),
     );
   }
 }

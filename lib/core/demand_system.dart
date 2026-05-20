@@ -31,7 +31,8 @@ class DemandSystem {
     required int industrialBuildings,
   }) {
     if (population == 0) {
-      return const DemandCurve(residential: 0, commercial: 0, industrial: 0);
+      // Allow initial residential growth even without existing population
+      return const DemandCurve(residential: 1.0, commercial: 0, industrial: 0);
     }
 
     const baseResidential = 1.0;
