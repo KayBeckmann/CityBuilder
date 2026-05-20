@@ -53,6 +53,8 @@ class HelpOverlay extends StatelessWidget {
                   text: 'Parks (\$500) → verbessern Services-Zufriedenheit'),
               const _Tip(icon: Icons.school_outlined, color: Color(0xFFFF9800),
                   text: 'Schule (\$3500) → Bildung, Beschäftigung +'),
+              const _Tip(icon: Icons.local_fire_department_outlined, color: Color(0xFFDD2C00),
+                  text: 'Feuerwehr (\$4500) → Brandrisiko -5%/Wache, Services +'),
               const _Tip(icon: Icons.local_police_outlined, color: Color(0xFF1565C0),
                   text: 'Polizei (\$4000) → Kriminalität sinkt, Services +'),
               const _Tip(icon: Icons.local_hospital_outlined, color: Color(0xFFE53935),

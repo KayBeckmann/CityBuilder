@@ -249,7 +249,7 @@ class GameNotifier extends Notifier<GameModel> {
     }
     if (_lowServicesTicks == 5) {
       q.push(CityNotification(
-        message: 'Tipp: Parks, Polizei, Krankenhaus und Infrastruktur verbessern Services.',
+        message: 'Tipp: Parks, Feuerwehr, Polizei, Krankenhaus, Schule + Infra verbessern Services.',
         isWarning: false,
       ));
     }
@@ -336,6 +336,7 @@ class GameNotifier extends Notifier<GameModel> {
     var policeCount = 0;
     var hospitalCount = 0;
     var schoolCount = 0;
+    var fireStationCount = 0;
     var industrialBuildings = 0;
     for (var row = 0; row < tileMap.height; row++) {
       for (var col = 0; col < tileMap.width; col++) {
@@ -345,7 +346,7 @@ class GameNotifier extends Notifier<GameModel> {
         if (data.hasPoliceStation) policeCount++;
         if (data.hasHospital) hospitalCount++;
         if (data.hasSchool) schoolCount++;
-        // Fire stations counted separately for fire probability
+        if (data.hasFireStation) fireStationCount++;
         if (data.zone != null && data.buildingLevel.hasBuilding) {
           buildings++;
           if (data.hasRoad) withRoad++;
@@ -365,6 +366,7 @@ class GameNotifier extends Notifier<GameModel> {
       policeStations: policeCount,
       hospitals: hospitalCount,
       schools: schoolCount,
+      fireStations: fireStationCount,
     );
 
     if (buildings == 0) {
@@ -385,7 +387,7 @@ class GameNotifier extends Notifier<GameModel> {
         housing: (0.3 + 0.7 * roadCov).clamp(0.0, 1.0),
         services: () {
           final pollutionPenalty = (industrialBuildings / buildings * 0.3).clamp(0, 0.25);
-          return (0.3 + (parkCount * 0.01).clamp(0, 0.10) + (policeCount * 0.03).clamp(0, 0.10) + (hospitalCount * 0.05).clamp(0, 0.10) + 0.2 * powerCov + 0.2 * pipeCov - pollutionPenalty).clamp(0.0, 1.0);
+          return (0.3 + (parkCount * 0.01).clamp(0, 0.10) + (policeCount * 0.03).clamp(0, 0.10) + (hospitalCount * 0.05).clamp(0, 0.10) + (fireStationCount * 0.02).clamp(0, 0.10) + 0.2 * powerCov + 0.2 * pipeCov - pollutionPenalty).clamp(0.0, 1.0);
         }(),
       ),
       stats,
