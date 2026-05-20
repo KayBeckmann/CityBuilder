@@ -280,6 +280,12 @@ class GameNotifier extends Notifier<GameModel> {
       return;
     }
 
+    // Earthquake event: 3% chance, destroys multiple buildings
+    if (_rng.nextDouble() < 0.03 && state.population.total >= 50) {
+      _triggerEarthquakeEvent(q);
+      return;
+    }
+
     final event = _events[_rng.nextInt(_events.length)];
     state = state.copyWith(budget: state.budget + event.budget);
     q.push(CityNotification(message: event.msg, isWarning: event.warn));
@@ -293,6 +299,33 @@ class GameNotifier extends Notifier<GameModel> {
       }
     }
     return count;
+  }
+
+  void _triggerEarthquakeEvent(NotificationQueue q) {
+    final buildings = <WorldPosition>[];
+    final tileMap = state.tileMap;
+    for (var row = 0; row < tileMap.height; row++) {
+      for (var col = 0; col < tileMap.width; col++) {
+        final pos = (col: col, row: row);
+        if (tileMap.getData(pos).buildingLevel.hasBuilding) buildings.add(pos);
+      }
+    }
+    if (buildings.isEmpty) return;
+
+    // Destroy 1-3 buildings
+    final count = 1 + _rng.nextInt(3);
+    var destroyed = 0;
+    for (var i = 0; i < count && buildings.isNotEmpty; i++) {
+      final idx = _rng.nextInt(buildings.length);
+      tileMap.setBuildingLevel(buildings[idx], BuildingLevel.empty);
+      buildings.removeAt(idx);
+      destroyed++;
+    }
+    state = state.copyWith(budget: state.budget - 1000);
+    q.push(CityNotification(
+      message: 'Erdbeben! $destroyed Gebäude zerstört, Schaden: \$1000',
+      isWarning: true,
+    ));
   }
 
   void _triggerFireEvent(NotificationQueue q) {

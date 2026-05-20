@@ -134,6 +134,13 @@ class TileInfoPanel extends StatelessWidget {
               icon: Icons.school_outlined,
               activeColor: Color(0xFFFF9800),
             ),
+          if (data.hasFireStation)
+            const _InfraRow(
+              label: 'Feuerwehr',
+              active: true,
+              icon: Icons.local_fire_department_outlined,
+              activeColor: Color(0xFFDD2C00),
+            ),
         ],
       ),
     );
