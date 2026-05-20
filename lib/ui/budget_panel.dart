@@ -98,6 +98,20 @@ class BudgetPanel extends ConsumerWidget {
           const Divider(color: Colors.white12, height: 1),
           const SizedBox(height: 8),
 
+          // Infrastructure coverage
+          const Text('Infrastruktur',
+              style: TextStyle(color: Colors.white38, fontSize: 10)),
+          const SizedBox(height: 4),
+          _Row(label: 'Gebäude', value: '${model.infraStats.buildings}', color: Colors.white70),
+          _Row(label: 'Straße', value: '${model.infraStats.roadPct}%', color: const Color(0xFF90A4AE)),
+          _Row(label: 'Strom', value: '${model.infraStats.powerPct}%', color: const Color(0xFFFFEE58)),
+          _Row(label: 'Wasser', value: '${model.infraStats.waterPct}%', color: const Color(0xFF42A5F5)),
+          _Row(label: 'Parks', value: '${model.infraStats.parks}', color: const Color(0xFF00C853)),
+
+          const SizedBox(height: 8),
+          const Divider(color: Colors.white12, height: 1),
+          const SizedBox(height: 8),
+
           // Satisfaction factors
           const Text('Zufriedenheit',
               style: TextStyle(color: Colors.white38, fontSize: 10)),

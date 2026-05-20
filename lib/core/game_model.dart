@@ -3,6 +3,22 @@ import 'package:city_builder/core/population_model.dart';
 import 'package:city_builder/core/satisfaction_system.dart';
 import 'package:city_builder/core/tile_map.dart';
 
+class InfraStats {
+  const InfraStats({
+    this.buildings = 0,
+    this.roadPct = 0,
+    this.powerPct = 0,
+    this.waterPct = 0,
+    this.parks = 0,
+  });
+
+  final int buildings;
+  final int roadPct;
+  final int powerPct;
+  final int waterPct;
+  final int parks;
+}
+
 class GameModel {
   const GameModel({
     required this.tileMap,
@@ -14,6 +30,7 @@ class GameModel {
     this.satisfaction = const SatisfactionFactors(),
     this.approvalRating = 0.5,
     this.loan = 0.0,
+    this.infraStats = const InfraStats(),
   });
 
   final TileMap tileMap;
@@ -25,6 +42,7 @@ class GameModel {
   final SatisfactionFactors satisfaction;
   final double approvalRating;
   final double loan;
+  final InfraStats infraStats;
 
   static const double loanInterestRate = 0.005; // 0.5% per tick
   static const double maxLoan = 50000.0;
@@ -49,6 +67,7 @@ class GameModel {
     SatisfactionFactors? satisfaction,
     double? approvalRating,
     double? loan,
+    InfraStats? infraStats,
   }) =>
       GameModel(
         tileMap: tileMap ?? this.tileMap,
@@ -60,5 +79,6 @@ class GameModel {
         satisfaction: satisfaction ?? this.satisfaction,
         approvalRating: approvalRating ?? this.approvalRating,
         loan: loan ?? this.loan,
+        infraStats: infraStats ?? this.infraStats,
       );
 }

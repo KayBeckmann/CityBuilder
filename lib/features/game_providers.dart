@@ -110,7 +110,8 @@ class GameNotifier extends Notifier<GameModel> {
       taxRates: state.taxRates,
     );
 
-    final newSatisfaction = _computeSatisfaction(tileMap, currentPop, commercial, industrial);
+    final (newSatisfaction, infraStats) = _computeSatisfaction(tileMap, currentPop, commercial, industrial);
+    _lastInfraStats = infraStats;
     final satisfactionScore = calculateSatisfaction(newSatisfaction);
 
     final newPopulation = calculatePopulation(
@@ -137,12 +138,14 @@ class GameNotifier extends Notifier<GameModel> {
       population: newPopulation,
       satisfaction: newSatisfaction,
       approvalRating: approval,
+      infraStats: _lastInfraStats,
     );
 
     _checkMilestones(prevPop, newPopulation.total, prevBudget, prevApproval, approval);
   }
 
   static final _rng = Random();
+  InfraStats _lastInfraStats = const InfraStats();
   static const _popMilestones = [50, 100, 250, 500, 1000, 2500, 5000, 10000];
 
   void _checkMilestones(
@@ -204,7 +207,7 @@ class GameNotifier extends Notifier<GameModel> {
     q.push(CityNotification(message: event.msg, isWarning: event.warn));
   }
 
-  SatisfactionFactors _computeSatisfaction(
+  (SatisfactionFactors, InfraStats) _computeSatisfaction(
     TileMap tileMap,
     int population,
     int commercial,
@@ -228,8 +231,16 @@ class GameNotifier extends Notifier<GameModel> {
       }
     }
 
+    final stats = InfraStats(
+      buildings: buildings,
+      roadPct: buildings > 0 ? (withRoad * 100 ~/ buildings) : 0,
+      powerPct: buildings > 0 ? (withPower * 100 ~/ buildings) : 0,
+      waterPct: buildings > 0 ? (withWater * 100 ~/ buildings) : 0,
+      parks: parkCount,
+    );
+
     if (buildings == 0) {
-      return const SatisfactionFactors(employment: 0.5, housing: 0.5, services: 0.5);
+      return (const SatisfactionFactors(employment: 0.5, housing: 0.5, services: 0.5), stats);
     }
 
     final roadCov = withRoad / buildings;
@@ -240,11 +251,13 @@ class GameNotifier extends Notifier<GameModel> {
         ? ((commercial + industrial) * 10.0 / population).clamp(0.0, 1.0)
         : 0.5;
 
-    return SatisfactionFactors(
-      employment: (employmentRatio * (0.5 + 0.5 * powerCov)).clamp(0.0, 1.0),
-      housing: (0.3 + 0.7 * roadCov).clamp(0.0, 1.0),
-      // Base service score 0.3 + park bonus (up to +0.2) + power/water
-      services: (0.3 + (parkCount * 0.01).clamp(0, 0.2) + 0.25 * powerCov + 0.25 * pipeCov).clamp(0.0, 1.0),
+    return (
+      SatisfactionFactors(
+        employment: (employmentRatio * (0.5 + 0.5 * powerCov)).clamp(0.0, 1.0),
+        housing: (0.3 + 0.7 * roadCov).clamp(0.0, 1.0),
+        services: (0.3 + (parkCount * 0.01).clamp(0, 0.2) + 0.25 * powerCov + 0.25 * pipeCov).clamp(0.0, 1.0),
+      ),
+      stats,
     );
   }
 
