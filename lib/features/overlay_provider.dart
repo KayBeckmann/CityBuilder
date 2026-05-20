@@ -94,9 +94,22 @@ Map<WorldPosition, double> computeOverlayValues(
             return pollution.clamp(0.0, 1.0);
           }(),
         OverlayType.crime => () {
-            if (data.zone == ZoneType.industrial && data.buildingLevel.hasBuilding) return 0.6;
-            if (data.zone == ZoneType.commercial && data.buildingLevel.hasBuilding) return 0.3;
-            return 0.1;
+            var crime = 0.0;
+            if (data.zone == ZoneType.industrial && data.buildingLevel.hasBuilding) crime = 0.7;
+            else if (data.zone == ZoneType.commercial && data.buildingLevel.hasBuilding) crime = 0.4;
+            else if (data.zone == ZoneType.residential && data.buildingLevel.hasBuilding) crime = 0.2;
+            if (crime == 0) return 0.0;
+            // Police stations reduce crime in radius 4
+            for (var dr = -4; dr <= 4; dr++) {
+              for (var dc = -4; dc <= 4; dc++) {
+                final n = (col: pos.col + dc, row: pos.row + dr);
+                if (!n.isValid(tileMap.width, tileMap.height)) continue;
+                if (tileMap.getData(n).hasPoliceStation) {
+                  crime -= 0.15;
+                }
+              }
+            }
+            return crime.clamp(0.0, 1.0);
           }(),
         OverlayType.none => 0.0,
       };

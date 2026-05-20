@@ -32,6 +32,7 @@ class GameSerializer {
           if (data.hasPowerPlant) 'pw': 1,
           if (data.hasWaterTower) 'wt': 1,
           if (data.hasPark) 'pk': 1,
+          if (data.hasPoliceStation) 'ps': 1,
         });
       }
       tiles.add(rowList);
@@ -89,6 +90,7 @@ class GameSerializer {
         if (cell.containsKey('pw')) tileMap.setPowerPlant(pos);
         if (cell.containsKey('wt')) tileMap.setWaterTower(pos);
         if (cell.containsKey('pk')) tileMap.setPark(pos);
+        if (cell.containsKey('ps')) tileMap.setPoliceStation(pos);
       }
     }
 

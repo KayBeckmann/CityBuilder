@@ -34,6 +34,9 @@ class TileMapComponent extends Component with HasGameReference {
   static final _waterTowerBgPaint = Paint()..color = const Color(0xFF002030);
   static final _parkPaint = Paint()..color = const Color(0xFF2E7D32);
   static final _parkHighPaint = Paint()..color = const Color(0xFF4CAF50);
+  static final _policePaint = Paint()..color = const Color(0xFF1565C0);
+  static final _policeBgPaint = Paint()..color = const Color(0xFF001529);
+  static final _policeSymbolPaint = Paint()..color = Colors.white;
 
   // Zone tints (shown when no overlay, no building sprite)
   static final _zoneTints = {
@@ -162,6 +165,15 @@ class TileMapComponent extends Component with HasGameReference {
             ..lineTo(cx - 1, cy + 2)
             ..close();
           canvas.drawPath(path, _powerPlantPaint);
+        }
+        if (data.hasPoliceStation) {
+          canvas.drawRect(rect.deflate(1), _policeBgPaint);
+          canvas.drawRect(rect.deflate(4), _policePaint);
+          final cx = rect.center.dx;
+          final cy = rect.center.dy;
+          // Star shape representing police badge
+          canvas.drawCircle(Offset(cx, cy), 4, _policeSymbolPaint);
+          canvas.drawCircle(Offset(cx, cy), 3, _policePaint);
         }
         if (data.hasWaterTower) {
           canvas.drawRect(rect.deflate(1), _waterTowerBgPaint);

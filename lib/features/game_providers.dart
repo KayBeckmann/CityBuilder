@@ -253,11 +253,13 @@ class GameNotifier extends Notifier<GameModel> {
     final wateredTiles = tileMap.computeWateredTiles();
     var buildings = 0, withRoad = 0, withPower = 0, withWater = 0;
     var parkCount = 0;
+    var policeCount = 0;
     for (var row = 0; row < tileMap.height; row++) {
       for (var col = 0; col < tileMap.width; col++) {
         final pos = (col: col, row: row);
         final data = tileMap.getData(pos);
         if (data.hasPark) parkCount++;
+        if (data.hasPoliceStation) policeCount++;
         if (data.zone != null && data.buildingLevel.hasBuilding) {
           buildings++;
           if (data.hasRoad) withRoad++;
@@ -291,7 +293,7 @@ class GameNotifier extends Notifier<GameModel> {
       SatisfactionFactors(
         employment: (employmentRatio * (0.5 + 0.5 * powerCov)).clamp(0.0, 1.0),
         housing: (0.3 + 0.7 * roadCov).clamp(0.0, 1.0),
-        services: (0.3 + (parkCount * 0.01).clamp(0, 0.2) + 0.25 * powerCov + 0.25 * pipeCov).clamp(0.0, 1.0),
+        services: (0.3 + (parkCount * 0.01).clamp(0, 0.15) + (policeCount * 0.03).clamp(0, 0.15) + 0.2 * powerCov + 0.2 * pipeCov).clamp(0.0, 1.0),
       ),
       stats,
     );
@@ -317,6 +319,19 @@ class GameNotifier extends Notifier<GameModel> {
       budget: state.budget - repayAmount,
       loan: state.loan - repayAmount,
     );
+  }
+
+  bool placePoliceStation(WorldPosition pos) {
+    const cost = 4000.0;
+    if (state.budget < cost) return false;
+    final tileMap = state.tileMap;
+    if (!tileMap.contains(pos)) return false;
+    if (tileMap.get(pos) == TerrainType.water) return false;
+    if (tileMap.getData(pos).hasPoliceStation) return false;
+    tileMap.setPoliceStation(pos);
+    tileMap.setZone(pos, null); // Can't have zone on police station
+    state = state.copyWith(budget: state.budget - cost);
+    return true;
   }
 
   bool placePark(WorldPosition pos) {
