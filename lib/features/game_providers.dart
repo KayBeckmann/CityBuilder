@@ -629,6 +629,7 @@ class GameNotifier extends Notifier<GameModel> {
     t.hasHospital = false;
     t.hasSchool = false;
     t.hasFireStation = false;
+    t.extractionBuilding = null;
     // Power plants and water towers kept intact (use demolishAll to remove them)
     state = state.copyWith();
   }
