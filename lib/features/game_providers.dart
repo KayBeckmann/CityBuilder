@@ -472,6 +472,7 @@ class GameNotifier extends Notifier<GameModel> {
     var hospitalCount = 0;
     var schoolCount = 0;
     var fireStationCount = 0;
+    var stationCount = 0;
     var industrialBuildings = 0;
     for (var row = 0; row < tileMap.height; row++) {
       for (var col = 0; col < tileMap.width; col++) {
@@ -482,6 +483,7 @@ class GameNotifier extends Notifier<GameModel> {
         if (data.hasHospital) hospitalCount++;
         if (data.hasSchool) schoolCount++;
         if (data.hasFireStation) fireStationCount++;
+        if (data.hasStation) stationCount++;
         if (data.zone != null && data.buildingLevel.hasBuilding) {
           buildings++;
           if (data.hasRoad) withRoad++;
@@ -522,7 +524,8 @@ class GameNotifier extends Notifier<GameModel> {
         housing: (0.3 + 0.7 * roadCov).clamp(0.0, 1.0),
         services: () {
           final pollutionPenalty = (industrialBuildings / buildings * 0.3).clamp(0, 0.25);
-          return (0.3 + (parkCount * 0.01).clamp(0, 0.10) + (policeCount * 0.03).clamp(0, 0.10) + (hospitalCount * 0.05).clamp(0, 0.10) + (fireStationCount * 0.02).clamp(0, 0.10) + 0.2 * powerCov + 0.2 * pipeCov - pollutionPenalty).clamp(0.0, 1.0);
+          final stationBonus = (stationCount * 0.04).clamp(0, 0.10);
+          return (0.3 + (parkCount * 0.01).clamp(0, 0.10) + (policeCount * 0.03).clamp(0, 0.10) + (hospitalCount * 0.05).clamp(0, 0.10) + (fireStationCount * 0.02).clamp(0, 0.10) + stationBonus + 0.2 * powerCov + 0.2 * pipeCov - pollutionPenalty).clamp(0.0, 1.0);
         }(),
       ),
       stats,
@@ -693,6 +696,31 @@ class GameNotifier extends Notifier<GameModel> {
     if (!tileMap.contains(pos) || tileMap.getData(pos).hasPipe) return false;
     tileMap.setPipe(pos);
     state = state.copyWith(budget: state.budget - kPipeCost);
+    return true;
+  }
+
+  bool placeRailTrack(WorldPosition pos) {
+    const cost = 400.0;
+    if (state.budget < cost) return false;
+    final tileMap = state.tileMap;
+    if (!tileMap.contains(pos)) return false;
+    if (tileMap.get(pos) == TerrainType.water) return false;
+    if (tileMap.getData(pos).hasRailTrack) return false;
+    tileMap.setRailTrack(pos);
+    state = state.copyWith(budget: state.budget - cost);
+    return true;
+  }
+
+  bool placeStation(WorldPosition pos) {
+    const cost = 8000.0;
+    if (state.budget < cost) return false;
+    final tileMap = state.tileMap;
+    if (!tileMap.contains(pos)) return false;
+    if (tileMap.get(pos) == TerrainType.water) return false;
+    if (tileMap.getData(pos).hasStation) return false;
+    tileMap.setStation(pos);
+    tileMap.setZone(pos, null);
+    state = state.copyWith(budget: state.budget - cost);
     return true;
   }
 

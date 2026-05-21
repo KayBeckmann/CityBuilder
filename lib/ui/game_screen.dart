@@ -127,6 +127,12 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           _flashError('Nicht genug Budget oder Raumfahrtbasis nicht erforscht!');
         }
 
+      case ToolType.railTrack:
+        if (!notifier.placeRailTrack(tilePos)) _flashError('Nicht genug Budget!');
+
+      case ToolType.station:
+        if (!notifier.placeStation(tilePos)) _flashError('Nicht genug Budget!');
+
       case ToolType.mine:
         if (!notifier.placeExtractionBuilding(
             tilePos, ExtractionBuildingType.mine)) {

@@ -25,6 +25,8 @@ class TileData {
     this.hasSpaceport = false,
     this.extractionBuilding,
     this.resourceRemaining = 0,
+    this.hasRailTrack = false,
+    this.hasStation = false,
   });
 
   TerrainType terrain;
@@ -45,6 +47,8 @@ class TileData {
   bool hasSpaceport;
   ExtractionBuildingType? extractionBuilding;
   int resourceRemaining;
+  bool hasRailTrack;
+  bool hasStation;
 
   bool get hasExtractionBuilding => extractionBuilding != null;
 }
@@ -176,6 +180,18 @@ class TileMap {
     _touch();
   }
 
+  void setRailTrack(WorldPosition pos, {bool value = true}) {
+    assert(pos.isValid(width, height));
+    _tiles[pos.row][pos.col].hasRailTrack = value;
+    _touch();
+  }
+
+  void setStation(WorldPosition pos, {bool value = true}) {
+    assert(pos.isValid(width, height));
+    _tiles[pos.row][pos.col].hasStation = value;
+    _touch();
+  }
+
   void setExtractionBuilding(
     WorldPosition pos,
     ExtractionBuildingType? type, {
@@ -207,6 +223,8 @@ class TileMap {
     t.hasFireStation = false;
     t.hasSpaceport = false;
     t.extractionBuilding = null;
+    t.hasRailTrack = false;
+    t.hasStation = false;
     _touch();
   }
 

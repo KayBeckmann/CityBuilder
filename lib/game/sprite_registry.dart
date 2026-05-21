@@ -22,6 +22,8 @@ class SpriteRegistry {
   }
 
   static const _spritePaths = [
+    'tiles/rail_h.png',
+    'tiles/rail_v.png',
     'tiles/terrain_grass.png',
     'tiles/terrain_water.png',
     'tiles/terrain_hill.png',

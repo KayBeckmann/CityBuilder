@@ -54,6 +54,13 @@ class TileMapComponent extends Component with HasGameReference {
     ..style = PaintingStyle.stroke;
   static final _spaceportBgPaint = Paint()..color = const Color(0xFF0D0D26);
   static final _spaceportPaint = Paint()..color = const Color(0xFF7B1FA2);
+  static final _railBgPaint = Paint()..color = const Color(0xFF3E2723);
+  static final _railTiePaint = Paint()..color = const Color(0xFF5D4037);
+  static final _railRailPaint = Paint()
+    ..color = const Color(0xFFBDBDBD)
+    ..strokeWidth = 1.5
+    ..style = PaintingStyle.stroke;
+  static final _stationPaint = Paint()..color = const Color(0xFF4E342E);
 
   // Reusable paints for hot-path color-only rendering (avoids per-frame allocation)
   static final _fillPaint = Paint()..style = PaintingStyle.fill;
@@ -270,6 +277,39 @@ class TileMapComponent extends Component with HasGameReference {
             ..close();
           canvas.drawPath(path, _waterTowerPaint);
         }
+        if (data.hasRailTrack) {
+          // Use horizontal or vertical sprite based on neighbor connectivity
+          final hasHorizNeighbor = _neighborHasRail(pos, 1, 0) || _neighborHasRail(pos, -1, 0);
+          final spritePath = hasHorizNeighbor ? 'tiles/rail_h.png' : 'tiles/rail_v.png';
+          final s = registry.namedSprite(spritePath);
+          if (s != null) {
+            s.render(canvas, position: screenPos, size: destSize);
+          } else {
+            canvas.drawRect(rect.deflate(2), _railBgPaint);
+            final cx = rect.center.dx;
+            final cy = rect.center.dy;
+            canvas.drawLine(
+                Offset(rect.left + 4, cy - 4), Offset(rect.right - 4, cy - 4), _railRailPaint);
+            canvas.drawLine(
+                Offset(rect.left + 4, cy + 4), Offset(rect.right - 4, cy + 4), _railRailPaint);
+          }
+        }
+        if (data.hasStation) {
+          canvas.drawRect(rect.deflate(1), _stationPaint);
+          final cx = rect.center.dx;
+          final cy = rect.center.dy;
+          canvas.drawRect(
+            Rect.fromCenter(center: Offset(cx, cy), width: 12, height: 8),
+            _fillPaint..color = const Color(0xFF8D6E63),
+          );
+          // Roof triangle
+          final roofPath = Path()
+            ..moveTo(cx - 7, cy - 4)
+            ..lineTo(cx, cy - 9)
+            ..lineTo(cx + 7, cy - 4)
+            ..close();
+          canvas.drawPath(roofPath, _fillPaint..color = const Color(0xFF4E342E));
+        }
         if (data.hasExtractionBuilding) {
           final eType = data.extractionBuilding!;
           final s = registry.extractionSprite(eType);
@@ -363,6 +403,12 @@ class TileMapComponent extends Component with HasGameReference {
     final n = (col: pos.col + dc, row: pos.row + dr);
     if (!n.isValid(tileMap.width, tileMap.height)) return false;
     return tileMap.getData(n).hasRoad;
+  }
+
+  bool _neighborHasRail(WorldPosition pos, int dc, int dr) {
+    final n = (col: pos.col + dc, row: pos.row + dr);
+    if (!n.isValid(tileMap.width, tileMap.height)) return false;
+    return tileMap.getData(n).hasRailTrack || tileMap.getData(n).hasStation;
   }
 
   void _drawRoadConnections(Canvas canvas, Rect rect, WorldPosition pos) {
