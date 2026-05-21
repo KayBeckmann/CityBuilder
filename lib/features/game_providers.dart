@@ -171,13 +171,28 @@ class GameNotifier extends Notifier<GameModel> {
     );
     final newlyResearched = techTree.researched.difference(prevResearched);
 
-    final newSatisfaction = techTree.isResearched(TechNode.asphaltRoads)
-        ? SatisfactionFactors(
-            employment: rawSatisfaction.employment,
-            housing: (rawSatisfaction.housing + 0.05).clamp(0.0, 1.0),
-            services: rawSatisfaction.services,
-          )
-        : rawSatisfaction;
+    var satEmployment = rawSatisfaction.employment;
+    var satHousing = rawSatisfaction.housing;
+    var satServices = rawSatisfaction.services;
+
+    if (techTree.isResearched(TechNode.asphaltRoads)) {
+      satHousing = (satHousing + 0.05).clamp(0.0, 1.0);
+    }
+    if (techTree.isResearched(TechNode.solarPower)) {
+      satServices = (satServices + 0.03).clamp(0.0, 1.0);
+    }
+    if (techTree.isResearched(TechNode.nuclearPower)) {
+      satEmployment = (satEmployment + 0.08).clamp(0.0, 1.0);
+    }
+    if (techTree.isResearched(TechNode.subway)) {
+      satHousing = (satHousing + 0.05).clamp(0.0, 1.0);
+    }
+
+    final newSatisfaction = SatisfactionFactors(
+      employment: satEmployment,
+      housing: satHousing,
+      services: satServices,
+    );
 
     final satisfactionScore = calculateSatisfaction(newSatisfaction);
 
