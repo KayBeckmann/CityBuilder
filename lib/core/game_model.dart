@@ -1,5 +1,6 @@
 import 'package:city_builder/core/economy.dart';
 import 'package:city_builder/core/population_model.dart';
+import 'package:city_builder/core/resource_system.dart';
 import 'package:city_builder/core/satisfaction_system.dart';
 import 'package:city_builder/core/space_phase.dart';
 import 'package:city_builder/core/tech_tree.dart';
@@ -48,8 +49,10 @@ class GameModel {
     this.demandI = 0.0,
     TechTreeState? techTree,
     SpacePhaseState? spacePhase,
+    ResourceInventory? resourceInventory,
   })  : techTree = techTree ?? TechTreeState(),
-        spacePhase = spacePhase ?? SpacePhaseState();
+        spacePhase = spacePhase ?? SpacePhaseState(),
+        resourceInventory = resourceInventory ?? ResourceInventory();
 
   final TileMap tileMap;
   final double budget;
@@ -68,6 +71,7 @@ class GameModel {
   final double demandI;
   final TechTreeState techTree;
   final SpacePhaseState spacePhase;
+  final ResourceInventory resourceInventory;
 
   static const int ticksPerYear = 20;
 
@@ -104,6 +108,7 @@ class GameModel {
     double? demandI,
     TechTreeState? techTree,
     SpacePhaseState? spacePhase,
+    ResourceInventory? resourceInventory,
   }) =>
       GameModel(
         tileMap: tileMap ?? this.tileMap,
@@ -123,5 +128,6 @@ class GameModel {
         demandI: demandI ?? this.demandI,
         techTree: techTree ?? this.techTree,
         spacePhase: spacePhase ?? this.spacePhase,
+        resourceInventory: resourceInventory ?? this.resourceInventory,
       );
 }

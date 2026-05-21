@@ -1,4 +1,5 @@
 import 'package:city_builder/core/building_level.dart';
+import 'package:city_builder/core/resource_system.dart';
 import 'package:city_builder/core/terrain_type.dart';
 import 'package:city_builder/core/zone_type.dart';
 import 'package:flame/flame.dart';
@@ -72,6 +73,16 @@ class SpriteRegistry {
   }
 
   Sprite? namedSprite(String path) => _cache[path];
+
+  Sprite? extractionSprite(ExtractionBuildingType type) => switch (type) {
+        ExtractionBuildingType.mine => namedSprite('tiles/building_mine.png'),
+        ExtractionBuildingType.sawmill =>
+          namedSprite('tiles/building_sawmill.png'),
+        ExtractionBuildingType.oilPump =>
+          namedSprite('tiles/building_oil_pump.png'),
+        ExtractionBuildingType.quarry =>
+          namedSprite('tiles/building_quarry.png'),
+      };
 
   String _terrainPath(TerrainType terrain) => switch (terrain) {
         TerrainType.grass => 'tiles/terrain_grass.png',

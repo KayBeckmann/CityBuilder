@@ -1,5 +1,6 @@
 import 'package:city_builder/core/resource_type.dart';
 import 'package:city_builder/core/world_position.dart';
+import 'package:flutter/material.dart';
 
 enum ExtractionBuildingType {
   mine,
@@ -26,6 +27,13 @@ enum ExtractionBuildingType {
         ExtractionBuildingType.sawmill => 2.0,
         ExtractionBuildingType.oilPump => 5.0,
         ExtractionBuildingType.quarry => 3.0,
+      };
+
+  Color get fallbackColor => switch (this) {
+        ExtractionBuildingType.mine => const Color(0xFF8D6E63),
+        ExtractionBuildingType.sawmill => const Color(0xFF558B2F),
+        ExtractionBuildingType.oilPump => const Color(0xFF37474F),
+        ExtractionBuildingType.quarry => const Color(0xFF78909C),
       };
 }
 

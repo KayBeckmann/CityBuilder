@@ -7,6 +7,7 @@ import 'package:city_builder/core/map_generator.dart';
 import 'package:city_builder/core/population_model.dart';
 import 'package:city_builder/core/resource_type.dart';
 import 'package:city_builder/core/satisfaction_system.dart';
+import 'package:city_builder/core/resource_system.dart';
 import 'package:city_builder/core/space_phase.dart';
 import 'package:city_builder/core/tech_tree.dart';
 import 'package:city_builder/core/terrain_type.dart';
@@ -39,6 +40,9 @@ class GameSerializer {
           if (data.hasSchool) 'sc': 1,
           if (data.hasFireStation) 'fs': 1,
           if (data.hasSpaceport) 'sp': 1,
+          if (data.extractionBuilding != null)
+            'eb': data.extractionBuilding!.index,
+          if (data.resourceRemaining > 0) 'rr': data.resourceRemaining,
         });
       }
       tiles.add(rowList);
@@ -69,6 +73,8 @@ class GameSerializer {
       'spaceActive': model.spacePhase.spacePhaseActive,
       'spaceRE': model.spacePhase.rareEarthStockpile,
       'spaceColony': model.spacePhase.colonyPopulation,
+      'resourceInventory': model.resourceInventory.snapshot
+          .map((k, v) => MapEntry(k.index.toString(), v)),
       'spaceMissions': model.spacePhase.activeMissions.map((m) => {
             'type': m.type.index,
             'start': m.startedAtTick,
@@ -114,6 +120,15 @@ class GameSerializer {
         if (cell.containsKey('sc')) tileMap.setSchool(pos);
         if (cell.containsKey('fs')) tileMap.setFireStation(pos);
         if (cell.containsKey('sp')) tileMap.setSpaceport(pos);
+        if (cell.containsKey('eb')) {
+          tileMap.setExtractionBuilding(
+            pos,
+            ExtractionBuildingType.values[cell['eb'] as int],
+            initialDeposit: 0,
+          );
+          tileMap.getData(pos).resourceRemaining =
+              cell['rr'] as int? ?? 0;
+        }
       }
     }
 
@@ -160,6 +175,14 @@ class GameSerializer {
       loan: (json['loan'] as num? ?? 0).toDouble(),
       cityName: (json['cityName'] as String? ?? 'Neustadt'),
       techTree: techTree,
+      resourceInventory: json.containsKey('resourceInventory')
+          ? ResourceInventory(
+              (json['resourceInventory'] as Map<String, dynamic>).map(
+                (k, v) => MapEntry(
+                    ResourceType.values[int.parse(k)], v as int),
+              ),
+            )
+          : null,
       spacePhase: json.containsKey('spaceActive')
           ? SpacePhaseState(
               spacePhaseActive: json['spaceActive'] as bool? ?? false,

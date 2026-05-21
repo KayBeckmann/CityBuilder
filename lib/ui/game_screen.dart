@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:city_builder/core/audio_manager.dart';
 import 'package:city_builder/core/overlay_type.dart';
+import 'package:city_builder/core/resource_system.dart';
 import 'package:city_builder/core/world_position.dart';
 import 'package:city_builder/features/game_providers.dart';
 import 'package:city_builder/features/notification_provider.dart';
@@ -124,6 +125,27 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       case ToolType.spaceport:
         if (!notifier.placeSpaceport(tilePos)) {
           _flashError('Nicht genug Budget oder Raumfahrtbasis nicht erforscht!');
+        }
+
+      case ToolType.mine:
+        if (!notifier.placeExtractionBuilding(
+            tilePos, ExtractionBuildingType.mine)) {
+          _flashError('Nicht genug Budget!');
+        }
+      case ToolType.sawmill:
+        if (!notifier.placeExtractionBuilding(
+            tilePos, ExtractionBuildingType.sawmill)) {
+          _flashError('Nicht genug Budget!');
+        }
+      case ToolType.oilPump:
+        if (!notifier.placeExtractionBuilding(
+            tilePos, ExtractionBuildingType.oilPump)) {
+          _flashError('Nicht genug Budget!');
+        }
+      case ToolType.quarry:
+        if (!notifier.placeExtractionBuilding(
+            tilePos, ExtractionBuildingType.quarry)) {
+          _flashError('Nicht genug Budget!');
         }
 
       case ToolType.road:

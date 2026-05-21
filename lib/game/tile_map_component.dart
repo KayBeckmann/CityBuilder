@@ -1,5 +1,6 @@
 import 'package:city_builder/core/building_level.dart';
 import 'package:city_builder/core/overlay_type.dart';
+import 'package:city_builder/core/resource_system.dart';
 import 'package:city_builder/core/tile_map.dart';
 import 'package:city_builder/core/world_position.dart';
 import 'package:city_builder/core/zone_type.dart';
@@ -268,6 +269,24 @@ class TileMapComponent extends Component with HasGameReference {
             )
             ..close();
           canvas.drawPath(path, _waterTowerPaint);
+        }
+        if (data.hasExtractionBuilding) {
+          final eType = data.extractionBuilding!;
+          final s = registry.extractionSprite(eType);
+          if (s != null) {
+            s.render(canvas, position: screenPos, size: destSize);
+          } else {
+            canvas.drawRect(rect.deflate(2), _fillPaint..color = eType.fallbackColor);
+          }
+          // Depletion overlay: darken tile as resource depletes
+          if (data.resourceRemaining < 200) {
+            final depletion = 1.0 - (data.resourceRemaining / 200.0);
+            canvas.drawRect(
+              rect,
+              _fillPaint
+                ..color = Colors.black.withValues(alpha: depletion * 0.5),
+            );
+          }
         }
         if (data.hasSpaceport) {
           final spaceportSprite = registry.namedSprite('tiles/building_spaceport.png');

@@ -6,6 +6,8 @@ import 'package:city_builder/core/economy.dart';
 import 'package:city_builder/core/game_model.dart';
 import 'package:city_builder/core/game_serializer.dart';
 import 'package:city_builder/core/map_generator.dart';
+import 'package:city_builder/core/resource_system.dart';
+import 'package:city_builder/core/resource_type.dart';
 import 'package:city_builder/core/space_phase.dart';
 import 'package:city_builder/core/tech_tree.dart';
 import 'package:city_builder/core/population_model.dart';
@@ -38,6 +40,14 @@ const Map<ZoneType, double> kZoneCost = {
 };
 
 const _demandSystem = DemandSystem();
+
+const Map<ResourceType, double> _kMarketPrices = {
+  ResourceType.coal: 20.0,
+  ResourceType.iron: 15.0,
+  ResourceType.wood: 10.0,
+  ResourceType.oil: 30.0,
+  ResourceType.stone: 8.0,
+};
 
 class GameNotifier extends Notifier<GameModel> {
   @override
@@ -205,14 +215,41 @@ class GameNotifier extends Notifier<GameModel> {
     }
     spaceSystem.tick(state: spacePhase, currentTick: state.tick + 1);
 
+    // Resource extraction tick
+    final inventory = state.resourceInventory;
+    var resourceRevenue = 0.0;
+    for (var row = 0; row < tileMap.height; row++) {
+      for (var col = 0; col < tileMap.width; col++) {
+        final pos = (col: col, row: row);
+        final data = tileMap.getData(pos);
+        final bType = data.extractionBuilding;
+        if (bType == null || data.resourceRemaining <= 0) continue;
+        final output = bType.outputPerTick.clamp(0, data.resourceRemaining);
+        data.resourceRemaining -= output;
+        inventory.add(data.resource ?? bType.primaryResource, output);
+      }
+    }
+    // Sell all inventory for revenue
+    for (final rType in ResourceType.values) {
+      final stock = inventory.get(rType);
+      if (stock > 0) {
+        resourceRevenue += stock * _kMarketPrices[rType]!;
+        inventory.consume(rType, stock);
+      }
+    }
+
     final hiBonus = techTree.isResearched(TechNode.hightechIndustry)
         ? economy.taxIncome * 0.05
         : 0.0;
     final rareEarthBonus = spacePhase.spacePhaseActive
         ? spaceSystem.hightechDemandBonus(rareEarth: spacePhase.rareEarthStockpile) * 200.0
         : 0.0;
-    final newBudget =
-        state.budget + economy.netBalance + hiBonus + rareEarthBonus - loanInterest;
+    final newBudget = state.budget +
+        economy.netBalance +
+        hiBonus +
+        rareEarthBonus +
+        resourceRevenue -
+        loanInterest;
     final newHistory = [...state.budgetHistory, newBudget];
     final budgetHistory = newHistory.length > 20
         ? newHistory.sublist(newHistory.length - 20)
@@ -655,6 +692,24 @@ class GameNotifier extends Notifier<GameModel> {
     if (!tileMap.contains(pos) || tileMap.getData(pos).hasPipe) return false;
     tileMap.setPipe(pos);
     state = state.copyWith(budget: state.budget - kPipeCost);
+    return true;
+  }
+
+  bool placeExtractionBuilding(WorldPosition pos, ExtractionBuildingType type) {
+    final cost = switch (type) {
+      ExtractionBuildingType.mine => 5000.0,
+      ExtractionBuildingType.sawmill => 4000.0,
+      ExtractionBuildingType.oilPump => 6000.0,
+      ExtractionBuildingType.quarry => 3500.0,
+    };
+    if (state.budget < cost) return false;
+    final tileMap = state.tileMap;
+    if (!tileMap.contains(pos)) return false;
+    if (tileMap.get(pos) == TerrainType.water) return false;
+    if (tileMap.getData(pos).hasExtractionBuilding) return false;
+    // Can place anywhere — higher yield on matching resource tiles
+    tileMap.setExtractionBuilding(pos, type);
+    state = state.copyWith(budget: state.budget - cost);
     return true;
   }
 

@@ -1,4 +1,5 @@
 import 'package:city_builder/core/building_level.dart';
+import 'package:city_builder/core/resource_system.dart';
 import 'package:city_builder/core/resource_type.dart';
 import 'package:city_builder/core/terrain_type.dart';
 import 'package:city_builder/core/world_position.dart';
@@ -22,6 +23,8 @@ class TileData {
     this.hasSchool = false,
     this.hasFireStation = false,
     this.hasSpaceport = false,
+    this.extractionBuilding,
+    this.resourceRemaining = 0,
   });
 
   TerrainType terrain;
@@ -40,6 +43,10 @@ class TileData {
   bool hasSchool;
   bool hasFireStation;
   bool hasSpaceport;
+  ExtractionBuildingType? extractionBuilding;
+  int resourceRemaining;
+
+  bool get hasExtractionBuilding => extractionBuilding != null;
 }
 
 class TileMap {
@@ -169,6 +176,20 @@ class TileMap {
     _touch();
   }
 
+  void setExtractionBuilding(
+    WorldPosition pos,
+    ExtractionBuildingType? type, {
+    int initialDeposit = 500,
+  }) {
+    assert(pos.isValid(width, height));
+    final t = _tiles[pos.row][pos.col];
+    t.extractionBuilding = type;
+    if (type != null && t.resourceRemaining == 0) {
+      t.resourceRemaining = initialDeposit;
+    }
+    _touch();
+  }
+
   void clearAll(WorldPosition pos) {
     assert(pos.isValid(width, height));
     final t = _tiles[pos.row][pos.col];
@@ -185,6 +206,7 @@ class TileMap {
     t.hasSchool = false;
     t.hasFireStation = false;
     t.hasSpaceport = false;
+    t.extractionBuilding = null;
     _touch();
   }
 
