@@ -267,6 +267,7 @@ class GameNotifier extends Notifier<GameModel> {
       demandR: demand.residential.clamp(0, 5),
       demandC: demand.commercial.clamp(0, 5),
       demandI: demand.industrial.clamp(0, 5),
+      resourceRevenue: resourceRevenue,
     );
 
     _checkMilestones(prevPop, newPopulation.total, prevBudget, prevApproval, approval);

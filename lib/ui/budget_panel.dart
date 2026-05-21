@@ -62,6 +62,12 @@ class BudgetPanel extends ConsumerWidget {
           _Row(label: 'Einnahmen/Tick',
               value: '+\$${eco.taxIncome.toStringAsFixed(1)}',
               color: Colors.greenAccent),
+          if (model.resourceRevenue > 0)
+            _Row(
+              label: 'Rohstoffe/Tick',
+              value: '+\$${model.resourceRevenue.toStringAsFixed(1)}',
+              color: const Color(0xFF8D6E63),
+            ),
           _Row(label: 'Ausgaben/Tick',
               value: '-\$${eco.operatingCosts.toStringAsFixed(1)}',
               color: Colors.redAccent),

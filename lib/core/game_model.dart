@@ -47,6 +47,7 @@ class GameModel {
     this.demandR = 0.0,
     this.demandC = 0.0,
     this.demandI = 0.0,
+    this.resourceRevenue = 0.0,
     TechTreeState? techTree,
     SpacePhaseState? spacePhase,
     ResourceInventory? resourceInventory,
@@ -69,6 +70,7 @@ class GameModel {
   final double demandR;
   final double demandC;
   final double demandI;
+  final double resourceRevenue;
   final TechTreeState techTree;
   final SpacePhaseState spacePhase;
   final ResourceInventory resourceInventory;
@@ -106,6 +108,7 @@ class GameModel {
     double? demandR,
     double? demandC,
     double? demandI,
+    double? resourceRevenue,
     TechTreeState? techTree,
     SpacePhaseState? spacePhase,
     ResourceInventory? resourceInventory,
@@ -126,6 +129,7 @@ class GameModel {
         demandR: demandR ?? this.demandR,
         demandC: demandC ?? this.demandC,
         demandI: demandI ?? this.demandI,
+        resourceRevenue: resourceRevenue ?? this.resourceRevenue,
         techTree: techTree ?? this.techTree,
         spacePhase: spacePhase ?? this.spacePhase,
         resourceInventory: resourceInventory ?? this.resourceInventory,
