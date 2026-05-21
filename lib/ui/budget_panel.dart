@@ -121,6 +121,10 @@ class BudgetPanel extends ConsumerWidget {
             _Row(label: 'Schulen', value: '${model.infraStats.schools}', color: const Color(0xFFFF9800)),
           if (model.infraStats.fireStations > 0)
             _Row(label: 'Feuerwehr', value: '${model.infraStats.fireStations}', color: const Color(0xFFDD2C00)),
+          if (model.infraStats.universities > 0)
+            _Row(label: 'Univ.', value: '${model.infraStats.universities}', color: const Color(0xFF6A1B9A)),
+          if (model.infraStats.stations > 0)
+            _Row(label: 'Bahnhöfe', value: '${model.infraStats.stations}', color: const Color(0xFF5D4037)),
 
           const SizedBox(height: 8),
           const Divider(color: Colors.white12, height: 1),

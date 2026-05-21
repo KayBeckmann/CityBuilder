@@ -475,6 +475,7 @@ class GameNotifier extends Notifier<GameModel> {
     var schoolCount = 0;
     var fireStationCount = 0;
     var stationCount = 0;
+    var universityCount2 = 0;
     var industrialBuildings = 0;
     for (var row = 0; row < tileMap.height; row++) {
       for (var col = 0; col < tileMap.width; col++) {
@@ -486,6 +487,7 @@ class GameNotifier extends Notifier<GameModel> {
         if (data.hasSchool) schoolCount++;
         if (data.hasFireStation) fireStationCount++;
         if (data.hasStation) stationCount++;
+        if (data.hasUniversity) universityCount2++;
         if (data.zone != null && data.buildingLevel.hasBuilding) {
           buildings++;
           if (data.hasRoad) withRoad++;
@@ -506,6 +508,8 @@ class GameNotifier extends Notifier<GameModel> {
       hospitals: hospitalCount,
       schools: schoolCount,
       fireStations: fireStationCount,
+      universities: universityCount2,
+      stations: stationCount,
     );
 
     if (buildings == 0) {

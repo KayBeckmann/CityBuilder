@@ -17,6 +17,8 @@ class InfraStats {
     this.hospitals = 0,
     this.schools = 0,
     this.fireStations = 0,
+    this.universities = 0,
+    this.stations = 0,
   });
 
   final int buildings;
@@ -28,6 +30,8 @@ class InfraStats {
   final int hospitals;
   final int schools;
   final int fireStations;
+  final int universities;
+  final int stations;
 }
 
 class GameModel {
