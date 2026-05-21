@@ -161,7 +161,7 @@ class GameNotifier extends Notifier<GameModel> {
 
     final techTree = state.techTree;
     final prevResearched = Set<TechNode>.from(techTree.researched);
-    final universityCount = _countTiles(tileMap, (d) => d.hasUniversity);
+    final universityCount = _lastInfraStats.universities;
     final educationIndex = ((_lastInfraStats.schools + universityCount * 3) * 0.1).clamp(0.0, 1.0);
     techTree.tickResearch(
       techTree.researchPointsGenerated(
