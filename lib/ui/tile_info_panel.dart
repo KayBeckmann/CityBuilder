@@ -1,5 +1,6 @@
 import 'package:city_builder/core/building_level.dart';
 import 'package:city_builder/core/economy.dart';
+import 'package:city_builder/core/resource_system.dart';
 import 'package:city_builder/core/tile_map.dart';
 import 'package:city_builder/core/world_position.dart';
 import 'package:flutter/material.dart';
@@ -140,6 +141,34 @@ class TileInfoPanel extends StatelessWidget {
               active: true,
               icon: Icons.local_fire_department_outlined,
               activeColor: Color(0xFFDD2C00),
+            ),
+          if (data.hasSpaceport)
+            const _InfraRow(
+              label: 'Raumhafen',
+              active: true,
+              icon: Icons.rocket_launch_outlined,
+              activeColor: Color(0xFF7B1FA2),
+            ),
+          if (data.hasRailTrack)
+            const _InfraRow(
+              label: 'Gleis',
+              active: true,
+              icon: Icons.linear_scale_outlined,
+              activeColor: Color(0xFF5D4037),
+            ),
+          if (data.hasStation)
+            const _InfraRow(
+              label: 'Bahnhof',
+              active: true,
+              icon: Icons.train_outlined,
+              activeColor: Color(0xFF4E342E),
+            ),
+          if (data.hasExtractionBuilding)
+            _InfraRow(
+              label: data.extractionBuilding!.label,
+              active: data.resourceRemaining > 0,
+              icon: Icons.hardware_outlined,
+              activeColor: const Color(0xFF8D6E63),
             ),
         ],
       ),

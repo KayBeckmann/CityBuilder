@@ -29,6 +29,13 @@ enum ExtractionBuildingType {
         ExtractionBuildingType.quarry => 3.0,
       };
 
+  String get label => switch (this) {
+        ExtractionBuildingType.mine => 'Mine',
+        ExtractionBuildingType.sawmill => 'Sägewerk',
+        ExtractionBuildingType.oilPump => 'Ölpumpe',
+        ExtractionBuildingType.quarry => 'Steinbruch',
+      };
+
   Color get fallbackColor => switch (this) {
         ExtractionBuildingType.mine => const Color(0xFF8D6E63),
         ExtractionBuildingType.sawmill => const Color(0xFF558B2F),
