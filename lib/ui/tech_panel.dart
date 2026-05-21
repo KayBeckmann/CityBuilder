@@ -181,6 +181,14 @@ class _TechNodeCard extends StatelessWidget {
               ],
             ],
           ),
+          const SizedBox(height: 3),
+          Text(
+            _effectFor(node),
+            style: TextStyle(
+              color: isResearched ? Colors.greenAccent.withValues(alpha: 0.7) : Colors.white38,
+              fontSize: 10,
+            ),
+          ),
           if (inProgress) ...[
             const SizedBox(height: 6),
             ClipRRect(
@@ -240,6 +248,18 @@ class _TechNodeCard extends StatelessWidget {
         TechNode.spaceportPrep => 'Raumfahrtbasis',
         TechNode.hightechIndustry => 'Hightech-Industrie',
         TechNode.subway => 'U-Bahn',
+      };
+
+  static String _effectFor(TechNode node) => switch (node) {
+        TechNode.solarPower => '+3% Services',
+        TechNode.asphaltRoads => '+5% Wohnen',
+        TechNode.school => 'Forschungspunkte +',
+        TechNode.nuclearPower => '+8% Beschäftigung',
+        TechNode.university => 'Uni-Gebäude (\$15k) + 50% FP/Uni',
+        TechNode.railSignaling => 'Gleis-Infrastruktur',
+        TechNode.spaceportPrep => 'Raumhafen-Gebäude (\$50k)',
+        TechNode.hightechIndustry => '+5% Steuereinnahmen',
+        TechNode.subway => '+5% Wohnen',
       };
 }
 
