@@ -1,5 +1,6 @@
 import 'package:city_builder/core/accessibility.dart';
 import 'package:city_builder/core/audio_manager.dart';
+import 'package:city_builder/features/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,6 +11,7 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final audio = ref.watch(audioProvider);
     final accessibility = ref.watch(accessibilityProvider);
+    final locale = ref.watch(localeProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFF1a1a2e),
@@ -21,6 +23,71 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          _SectionHeader(label: 'Sprache / Language'),
+          _SettingsCard(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    const Text('Sprache / Language',
+                        style: TextStyle(color: Colors.white70, fontSize: 14)),
+                    const Spacer(),
+                    _LangButton(
+                      code: 'de',
+                      label: '🇩🇪 DE',
+                      selected: locale.languageCode == 'de',
+                      onTap: () => ref
+                          .read(localeProvider.notifier)
+                          .setLocale(const Locale('de')),
+                    ),
+                    const SizedBox(width: 8),
+                    _LangButton(
+                      code: 'en',
+                      label: '🇬🇧 EN',
+                      selected: locale.languageCode == 'en',
+                      onTap: () => ref
+                          .read(localeProvider.notifier)
+                          .setLocale(const Locale('en')),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _SectionHeader(label: 'Schriftgröße / Font Size'),
+          _SettingsCard(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Skalierung: ${(accessibility.fontSize * 100).toInt()}%',
+                      style: const TextStyle(
+                          color: Colors.white70, fontSize: 13),
+                    ),
+                    Slider(
+                      value: accessibility.fontSize,
+                      min: 0.8,
+                      max: 1.4,
+                      divisions: 6,
+                      label:
+                          '${(accessibility.fontSize * 100).toInt()}%',
+                      onChanged: (v) => ref
+                          .read(accessibilityProvider.notifier)
+                          .setFontSize(v),
+                      activeColor: const Color(0xFF4CAF50),
+                      inactiveColor: Colors.white12,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
           _SectionHeader(label: 'Audio'),
           _SettingsCard(
             children: [
@@ -126,6 +193,47 @@ class _SettingsCard extends StatelessWidget {
       child: Column(children: children),
     );
   }
+}
+
+class _LangButton extends StatelessWidget {
+  const _LangButton({
+    required this.code,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String code;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: selected
+                ? const Color(0xFF4CAF50).withValues(alpha: 0.2)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+              color: selected
+                  ? const Color(0xFF4CAF50)
+                  : Colors.white24,
+            ),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: selected ? const Color(0xFF4CAF50) : Colors.white54,
+              fontSize: 13,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.normal,
+            ),
+          ),
+        ),
+      );
 }
 
 class _VolumeSlider extends StatelessWidget {
