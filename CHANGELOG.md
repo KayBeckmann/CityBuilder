@@ -18,6 +18,33 @@ All notable changes to CityBuilder are documented here.
 
 ---
 
+## M9 — Rail Network
+
+- `hasRailTrack` + `hasStation` tile flags; `TileMap.setRailTrack()` / `setStation()`
+- Rail track ($400) and station ($8k) ToolTypes with icons and colors
+- `GameNotifier.placeRailTrack()` / `placeStation()`
+- Satisfaction bonus: +0.04 per station (max +0.10 to services)
+- Rendering: `rail_h.png` / `rail_v.png` sprites with horizontal neighbor detection; canvas fallback
+- Station fallback: brown building with roof triangle
+- Serializer: 'rt' / 'st' tile flags
+- Tool palette updated with rail group
+
+---
+
+## M8 — Resource Extraction
+
+- `extractionBuilding` + `resourceRemaining` tile fields
+- Mine ($5k), Sawmill ($4k), OilPump ($6k), Quarry ($3.5k) tools
+- `GameNotifier.placeExtractionBuilding()` + `demolishInfra()` removes extraction
+- Each tick: extracts per-building output, sells all inventory at market prices
+- Market: coal $20, iron $15, wood $10, oil $30, stone $8
+- `ResourceInventory` in `GameModel`; serialized as JSON map
+- Depletion overlay: tile darkens when < 200 units remain
+- Tile inspector shows extraction buildings with depletion state
+- `ExtractionBuildingType.label` getter for German display names
+
+---
+
 ## M17 — Accessibility & Localization
 
 - `LocaleNotifier`/`localeProvider` Riverpod notifier for runtime locale switching
