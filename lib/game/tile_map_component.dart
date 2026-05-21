@@ -51,6 +51,8 @@ class TileMapComponent extends Component with HasGameReference {
     ..color = Colors.white
     ..strokeWidth = 2.0
     ..style = PaintingStyle.stroke;
+  static final _spaceportBgPaint = Paint()..color = const Color(0xFF0D0D26);
+  static final _spaceportPaint = Paint()..color = const Color(0xFF7B1FA2);
 
   // Zone tints (shown when no overlay, no building sprite)
   static final _zoneTints = {
@@ -181,46 +183,65 @@ class TileMapComponent extends Component with HasGameReference {
           canvas.drawPath(path, _powerPlantPaint);
         }
         if (data.hasPoliceStation) {
-          canvas.drawRect(rect.deflate(1), _policeBgPaint);
-          canvas.drawRect(rect.deflate(4), _policePaint);
-          final cx = rect.center.dx;
-          final cy = rect.center.dy;
-          // Star shape representing police badge
-          canvas.drawCircle(Offset(cx, cy), 4, _policeSymbolPaint);
-          canvas.drawCircle(Offset(cx, cy), 3, _policePaint);
+          final s = registry.namedSprite('tiles/building_police.png');
+          if (s != null) {
+            s.render(canvas, position: screenPos, size: destSize);
+          } else {
+            canvas.drawRect(rect.deflate(1), _policeBgPaint);
+            canvas.drawRect(rect.deflate(4), _policePaint);
+            final cx = rect.center.dx;
+            final cy = rect.center.dy;
+            canvas.drawCircle(Offset(cx, cy), 4, _policeSymbolPaint);
+            canvas.drawCircle(Offset(cx, cy), 3, _policePaint);
+          }
         }
         if (data.hasSchool) {
-          canvas.drawRect(rect.deflate(1), _schoolBgPaint);
-          canvas.drawRect(rect.deflate(4), _schoolPaint);
-          // Draw a small "A" shape
-          final cx = rect.center.dx;
-          final top = rect.top + 6;
-          final bottom = rect.bottom - 6;
-          final schoolPath = Paint()
-            ..color = Colors.white
-            ..strokeWidth = 2.0
-            ..style = PaintingStyle.stroke;
-          canvas.drawLine(Offset(cx - 5, bottom), Offset(cx, top), schoolPath);
-          canvas.drawLine(Offset(cx + 5, bottom), Offset(cx, top), schoolPath);
-          canvas.drawLine(Offset(cx - 3, bottom - 4), Offset(cx + 3, bottom - 4), schoolPath);
+          final s = registry.namedSprite('tiles/building_school.png');
+          if (s != null) {
+            s.render(canvas, position: screenPos, size: destSize);
+          } else {
+            canvas.drawRect(rect.deflate(1), _schoolBgPaint);
+            canvas.drawRect(rect.deflate(4), _schoolPaint);
+            final cx = rect.center.dx;
+            final top = rect.top + 6;
+            final bottom = rect.bottom - 6;
+            final schoolPath = Paint()
+              ..color = Colors.white
+              ..strokeWidth = 2.0
+              ..style = PaintingStyle.stroke;
+            canvas.drawLine(Offset(cx - 5, bottom), Offset(cx, top), schoolPath);
+            canvas.drawLine(Offset(cx + 5, bottom), Offset(cx, top), schoolPath);
+            canvas.drawLine(
+                Offset(cx - 3, bottom - 4), Offset(cx + 3, bottom - 4), schoolPath);
+          }
         }
         if (data.hasFireStation) {
-          canvas.drawRect(rect.deflate(1), _fireBgPaint);
-          canvas.drawRect(rect.deflate(4), _firePaint);
-          // Simple flame shape
-          final cx = rect.center.dx;
-          final cy = rect.center.dy;
-          canvas.drawLine(Offset(cx - 4, cy + 4), Offset(cx, cy - 5), _fireSymbolPaint);
-          canvas.drawLine(Offset(cx + 4, cy + 4), Offset(cx, cy - 5), _fireSymbolPaint);
-          canvas.drawLine(Offset(cx - 4, cy + 4), Offset(cx + 4, cy + 4), _fireSymbolPaint);
+          final s = registry.namedSprite('tiles/building_fire.png');
+          if (s != null) {
+            s.render(canvas, position: screenPos, size: destSize);
+          } else {
+            canvas.drawRect(rect.deflate(1), _fireBgPaint);
+            canvas.drawRect(rect.deflate(4), _firePaint);
+            final cx = rect.center.dx;
+            final cy = rect.center.dy;
+            canvas.drawLine(Offset(cx - 4, cy + 4), Offset(cx, cy - 5), _fireSymbolPaint);
+            canvas.drawLine(Offset(cx + 4, cy + 4), Offset(cx, cy - 5), _fireSymbolPaint);
+            canvas.drawLine(
+                Offset(cx - 4, cy + 4), Offset(cx + 4, cy + 4), _fireSymbolPaint);
+          }
         }
         if (data.hasHospital) {
-          canvas.drawRect(rect.deflate(1), _hospitalBgPaint);
-          canvas.drawRect(rect.deflate(4), _hospitalPaint);
-          final cx = rect.center.dx;
-          final cy = rect.center.dy;
-          canvas.drawLine(Offset(cx - 5, cy), Offset(cx + 5, cy), _hospitalCrossPaint);
-          canvas.drawLine(Offset(cx, cy - 5), Offset(cx, cy + 5), _hospitalCrossPaint);
+          final s = registry.namedSprite('tiles/building_hospital.png');
+          if (s != null) {
+            s.render(canvas, position: screenPos, size: destSize);
+          } else {
+            canvas.drawRect(rect.deflate(1), _hospitalBgPaint);
+            canvas.drawRect(rect.deflate(4), _hospitalPaint);
+            final cx = rect.center.dx;
+            final cy = rect.center.dy;
+            canvas.drawLine(Offset(cx - 5, cy), Offset(cx + 5, cy), _hospitalCrossPaint);
+            canvas.drawLine(Offset(cx, cy - 5), Offset(cx, cy + 5), _hospitalCrossPaint);
+          }
         }
         if (data.hasWaterTower) {
           canvas.drawRect(rect.deflate(1), _waterTowerBgPaint);
@@ -238,6 +259,28 @@ class TileMapComponent extends Component with HasGameReference {
             )
             ..close();
           canvas.drawPath(path, _waterTowerPaint);
+        }
+        if (data.hasSpaceport) {
+          final spaceportSprite = registry.namedSprite('tiles/building_spaceport.png');
+          if (spaceportSprite != null) {
+            spaceportSprite.render(canvas, position: screenPos, size: destSize);
+          } else {
+            canvas.drawRect(rect.deflate(1), _spaceportBgPaint);
+            canvas.drawRect(rect.deflate(4), _spaceportPaint);
+            // Rocket silhouette: triangle + rectangle
+            final cx = rect.center.dx;
+            final cy = rect.center.dy;
+            final rocketPath = Path()
+              ..moveTo(cx, rect.top + 5)
+              ..lineTo(cx + 5, cy + 4)
+              ..lineTo(cx - 5, cy + 4)
+              ..close();
+            canvas.drawPath(rocketPath, Paint()..color = Colors.white70);
+            canvas.drawRect(
+              Rect.fromLTWH(cx - 3, cy + 4, 6, 6),
+              Paint()..color = Colors.white54,
+            );
+          }
         }
 
         // ── Overlay heatmap ──────────────────────────────────────────

@@ -71,6 +71,8 @@ class SpriteRegistry {
     return _cache[_buildingPath(zone, level)];
   }
 
+  Sprite? namedSprite(String path) => _cache[path];
+
   String _terrainPath(TerrainType terrain) => switch (terrain) {
         TerrainType.grass => 'tiles/terrain_grass.png',
         TerrainType.water => 'tiles/terrain_water.png',
