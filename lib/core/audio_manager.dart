@@ -1,3 +1,4 @@
+import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 enum MusicTrack {
@@ -57,11 +58,14 @@ class AudioSettings {
 }
 
 class AudioManager extends Notifier<AudioSettings> {
+  MusicTrack? _currentTrack;
+
   @override
   AudioSettings build() => const AudioSettings();
 
   void setMusicVolume(double volume) {
     state = state.copyWith(musicVolume: volume.clamp(0, 1));
+    _applyMusicVolume();
   }
 
   void setSfxVolume(double volume) {
@@ -70,10 +74,12 @@ class AudioManager extends Notifier<AudioSettings> {
 
   void toggleMute() {
     state = state.copyWith(muted: !state.muted);
+    _applyMusicVolume();
   }
 
   void setMute(bool muted) {
     state = state.copyWith(muted: muted);
+    _applyMusicVolume();
   }
 
   MusicTrack trackForPopulation(int population) {
@@ -82,12 +88,41 @@ class AudioManager extends Notifier<AudioSettings> {
     return MusicTrack.earlyCity;
   }
 
+  Future<void> playMusic(MusicTrack track) async {
+    if (_currentTrack == track) return;
+    _currentTrack = track;
+    try {
+      await FlameAudio.bgm.stop();
+      if (state.isMusicAudible) {
+        await FlameAudio.bgm.play(track.filename, volume: state.musicVolume);
+      }
+    } catch (_) {}
+  }
+
+  Future<void> stopMusic() async {
+    _currentTrack = null;
+    try {
+      await FlameAudio.bgm.stop();
+    } catch (_) {}
+  }
+
   void playSfx(SoundEffect effect) {
-    // Audio engine integration point — assets registered but playback
-    // requires flame_audio or audioplayers which are not in this build.
-    // The system is ready to wire up when audio assets are available.
     if (!state.isSfxAudible) return;
+    try {
+      FlameAudio.play(effect.filename, volume: state.sfxVolume);
+    } catch (_) {}
+  }
+
+  void _applyMusicVolume() {
+    try {
+      if (state.isMusicAudible) {
+        FlameAudio.bgm.audioPlayer?.setVolume(state.musicVolume);
+      } else {
+        FlameAudio.bgm.audioPlayer?.setVolume(0);
+      }
+    } catch (_) {}
   }
 }
 
-final audioProvider = NotifierProvider<AudioManager, AudioSettings>(AudioManager.new);
+final audioProvider =
+    NotifierProvider<AudioManager, AudioSettings>(AudioManager.new);

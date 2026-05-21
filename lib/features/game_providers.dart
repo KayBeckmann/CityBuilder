@@ -14,6 +14,7 @@ import 'package:city_builder/core/terrain_type.dart';
 import 'package:city_builder/core/tile_map.dart';
 import 'package:city_builder/core/world_position.dart';
 import 'package:city_builder/core/zone_type.dart';
+import 'package:city_builder/core/audio_manager.dart';
 import 'package:city_builder/features/notification_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -103,6 +104,7 @@ class GameNotifier extends Notifier<GameModel> {
     tileMap.setZone(pos, zone);
     if (zone != null) {
       state = state.copyWith(budget: state.budget - cost);
+      ref.read(audioProvider.notifier).playSfx(SoundEffect.build);
     }
     return true;
   }
@@ -263,6 +265,7 @@ class GameNotifier extends Notifier<GameModel> {
     for (final milestone in _popMilestones) {
       if (prevPop < milestone && newPop >= milestone) {
         q.push(CityNotification(message: '$milestone Einwohner erreicht!'));
+        ref.read(audioProvider.notifier).playSfx(SoundEffect.milestone);
         return;
       }
     }
@@ -600,6 +603,7 @@ class GameNotifier extends Notifier<GameModel> {
     if (!tileMap.contains(pos)) return false;
     tileMap.clearAll(pos);
     state = state.copyWith(budget: state.budget - cost);
+    ref.read(audioProvider.notifier).playSfx(SoundEffect.demolish);
     return true;
   }
 

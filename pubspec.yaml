@@ -13,6 +13,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   flame: ^1.21.0
+  flame_audio: ^2.10.0
   flutter_riverpod: ^2.6.1
   riverpod_annotation: ^2.6.1
   collection: ^1.18.0
@@ -31,7 +32,8 @@ flutter:
 
   assets:
     - assets/tiles/
-    - assets/sounds/
+    - assets/sounds/sfx/
+    - assets/sounds/music/
     - assets/fonts/
     - lib/l10n/app_de.arb
     - lib/l10n/app_en.arb

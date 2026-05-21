@@ -227,7 +227,14 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         setState(() => _gameOver = false);
         final m = ref.read(gameProvider);
         widget.game.loadMap(m.tileMap);
+        ref.read(audioProvider.notifier).playMusic(MusicTrack.earlyCity);
       }
+    });
+
+    // Update background music when population crosses thresholds
+    ref.listen(gameProvider.select((m) => m.population.total), (_, pop) {
+      final track = ref.read(audioProvider.notifier).trackForPopulation(pop);
+      ref.read(audioProvider.notifier).playMusic(track);
     });
 
     // Show city notifications
