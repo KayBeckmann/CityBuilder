@@ -226,7 +226,14 @@ class GameNotifier extends Notifier<GameModel> {
         final bType = data.extractionBuilding;
         if (bType == null || data.resourceRemaining <= 0) continue;
         final output = bType.outputPerTick.clamp(0, data.resourceRemaining);
+        final wasFull = data.resourceRemaining > 50;
         data.resourceRemaining -= output;
+        if (wasFull && data.resourceRemaining <= 50) {
+          ref.read(notificationQueueProvider.notifier).push(CityNotification(
+            message: '${bType.label} fast erschöpft! Noch ${data.resourceRemaining} Einheiten.',
+            isWarning: true,
+          ));
+        }
         inventory.add(data.resource ?? bType.primaryResource, output);
       }
     }
@@ -526,7 +533,7 @@ class GameNotifier extends Notifier<GameModel> {
 
     return (
       SatisfactionFactors(
-        employment: (employmentRatio * (0.5 + 0.5 * powerCov) + (hospitalCount * 0.02).clamp(0, 0.1) + (schoolCount * 0.03).clamp(0, 0.15)).clamp(0.0, 1.0),
+        employment: (employmentRatio * (0.5 + 0.5 * powerCov) + (hospitalCount * 0.02).clamp(0, 0.1) + (schoolCount * 0.03).clamp(0, 0.15) + (universityCount2 * 0.05).clamp(0, 0.15)).clamp(0.0, 1.0),
         housing: (0.3 + 0.7 * roadCov).clamp(0.0, 1.0),
         services: () {
           final pollutionPenalty = (industrialBuildings / buildings * 0.3).clamp(0, 0.25);
