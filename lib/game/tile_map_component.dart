@@ -294,6 +294,15 @@ class TileMapComponent extends Component with HasGameReference {
                 Offset(rect.left + 4, cy + 4), Offset(rect.right - 4, cy + 4), _railRailPaint);
           }
         }
+        if (data.hasUniversity) {
+          final s = registry.namedSprite('tiles/building_university.png');
+          if (s != null) {
+            s.render(canvas, position: screenPos, size: destSize);
+          } else {
+            canvas.drawRect(rect.deflate(1), _fillPaint..color = const Color(0xFF4A148C));
+            canvas.drawRect(rect.deflate(4), _fillPaint..color = const Color(0xFF6A1B9A));
+          }
+        }
         if (data.hasStation) {
           canvas.drawRect(rect.deflate(1), _stationPaint);
           final cx = rect.center.dx;

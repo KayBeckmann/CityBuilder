@@ -40,6 +40,7 @@ class GameSerializer {
           if (data.hasSchool) 'sc': 1,
           if (data.hasFireStation) 'fs': 1,
           if (data.hasSpaceport) 'sp': 1,
+          if (data.hasUniversity) 'un': 1,
           if (data.hasRailTrack) 'rt': 1,
           if (data.hasStation) 'st': 1,
           if (data.extractionBuilding != null)
@@ -122,6 +123,7 @@ class GameSerializer {
         if (cell.containsKey('sc')) tileMap.setSchool(pos);
         if (cell.containsKey('fs')) tileMap.setFireStation(pos);
         if (cell.containsKey('sp')) tileMap.setSpaceport(pos);
+        if (cell.containsKey('un')) tileMap.setUniversity(pos);
         if (cell.containsKey('rt')) tileMap.setRailTrack(pos);
         if (cell.containsKey('st')) tileMap.setStation(pos);
         if (cell.containsKey('eb')) {

@@ -27,6 +27,7 @@ class TileData {
     this.resourceRemaining = 0,
     this.hasRailTrack = false,
     this.hasStation = false,
+    this.hasUniversity = false,
   });
 
   TerrainType terrain;
@@ -49,6 +50,7 @@ class TileData {
   int resourceRemaining;
   bool hasRailTrack;
   bool hasStation;
+  bool hasUniversity;
 
   bool get hasExtractionBuilding => extractionBuilding != null;
 }
@@ -183,6 +185,12 @@ class TileMap {
     _touch();
   }
 
+  void setUniversity(WorldPosition pos, {bool value = true}) {
+    assert(pos.isValid(width, height));
+    _tiles[pos.row][pos.col].hasUniversity = value;
+    _touch();
+  }
+
   void setRailTrack(WorldPosition pos, {bool value = true}) {
     assert(pos.isValid(width, height));
     _tiles[pos.row][pos.col].hasRailTrack = value;
@@ -228,6 +236,7 @@ class TileMap {
     t.extractionBuilding = null;
     t.hasRailTrack = false;
     t.hasStation = false;
+    t.hasUniversity = false;
     _touch();
   }
 

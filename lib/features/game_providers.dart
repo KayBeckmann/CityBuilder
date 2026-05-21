@@ -161,11 +161,12 @@ class GameNotifier extends Notifier<GameModel> {
 
     final techTree = state.techTree;
     final prevResearched = Set<TechNode>.from(techTree.researched);
-    final educationIndex = (_lastInfraStats.schools * 0.1).clamp(0.0, 1.0);
+    final universityCount = _countTiles(tileMap, (d) => d.hasUniversity);
+    final educationIndex = ((_lastInfraStats.schools + universityCount * 3) * 0.1).clamp(0.0, 1.0);
     techTree.tickResearch(
       techTree.researchPointsGenerated(
         educationIndex: educationIndex,
-        universityCount: 0,
+        universityCount: universityCount,
       ),
     );
     final newlyResearched = techTree.researched.difference(prevResearched);
@@ -636,6 +637,7 @@ class GameNotifier extends Notifier<GameModel> {
     t.extractionBuilding = null;
     t.hasRailTrack = false;
     t.hasStation = false;
+    t.hasUniversity = false;
     // Power plants and water towers kept intact (use demolishAll to remove them)
     tileMap.markDirty();
     state = state.copyWith();
@@ -700,6 +702,20 @@ class GameNotifier extends Notifier<GameModel> {
     if (!tileMap.contains(pos) || tileMap.getData(pos).hasPipe) return false;
     tileMap.setPipe(pos);
     state = state.copyWith(budget: state.budget - kPipeCost);
+    return true;
+  }
+
+  bool placeUniversity(WorldPosition pos) {
+    const cost = 15000.0;
+    if (state.budget < cost) return false;
+    if (!state.techTree.isResearched(TechNode.university)) return false;
+    final tileMap = state.tileMap;
+    if (!tileMap.contains(pos)) return false;
+    if (tileMap.get(pos) == TerrainType.water) return false;
+    if (tileMap.getData(pos).hasUniversity) return false;
+    tileMap.setUniversity(pos);
+    tileMap.setZone(pos, null);
+    state = state.copyWith(budget: state.budget - cost);
     return true;
   }
 

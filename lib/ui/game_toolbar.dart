@@ -26,6 +26,7 @@ class ToolPalette extends StatelessWidget {
     [
       ToolType.park,
       ToolType.school,
+      ToolType.university,
       ToolType.fireStation,
       ToolType.policeStation,
       ToolType.hospital,
