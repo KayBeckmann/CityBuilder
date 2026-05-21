@@ -2,6 +2,67 @@
 
 All notable changes to CityBuilder are documented here.
 
+## [Unreleased] — M18 Release Candidate
+
+### Performance
+- `TileMap._version` counter: increments on every mutation; minimap now skips
+  repaints when map version has not changed (was: always repaint every frame)
+- `TileMap.computePoweredTiles()` / `computeWateredTiles()`: flood-fill results
+  cached per version; only recomputed after a map mutation
+- Service building sprites (police, school, fire, hospital, spaceport) render
+  via `SpriteRegistry.namedSprite()` with canvas fallback
+
+### Build
+- `CHANGELOG.md` added
+- `flutter test` — 130 tests passing, 0 failures
+
+---
+
+## M17 — Accessibility & Localization
+
+- `LocaleNotifier`/`localeProvider` Riverpod notifier for runtime locale switching
+- DE/EN language buttons wired in Settings screen
+- Font-size slider (80–140%) in Settings screen
+- `CityBuilderApp` converted to `ConsumerWidget`; locale from Riverpod
+- ARB files (`app_de.arb` + `app_en.arb`) — 48 localized string keys
+
+---
+
+## M16 — Graphics
+
+- Service building PNG sprites rendered on the game map (canvas fallback)
+- Spaceport sprite rendered via `namedSprite`
+- `SpriteRegistry.namedSprite(path)` public accessor
+
+---
+
+## M15 — Audio
+
+- `flame_audio ^2.10.0`; `AudioManager` uses `FlameAudio.bgm` + `FlameAudio.play`
+- Silent placeholder MP3 files for 3 music tracks and 6 SFX
+- Music auto-changes with population thresholds (5k → metropolis, 50k → space_age)
+- SFX: build, demolish, milestone
+
+---
+
+## M14 — Space Exploration
+
+- `SpacePhaseState` in `GameModel`; serialized; `hasSpaceport` tile flag
+- `ToolType.spaceport` ($50k, requires spaceportPrep research)
+- `GameNotifier.launchMission()` queues missions by tick count
+- Space trigger: pop ≥ 500k + spaceport built + spaceportPrep researched
+- Rare-earth income bonus (+$200/point/tick)
+- `SpacePanel` widget + HUD rocket button
+
+---
+
+## M13 — Tech Tree
+
+- `TechTreeState` persisted in `GameModel.copyWith` + serializer
+- Research generates points from schools each tick
+- `asphaltRoads`: +0.05 housing satisfaction; `hightechIndustry`: +5% tax income
+- `TechPanel` widget with progress bars, dep chips, Start buttons + HUD button
+
 ---
 
 ## [1.0.0] — M18 Release Candidate (2026-05-19)

@@ -49,6 +49,11 @@ class TileMap {
           (_) => List.generate(width, (_) => TileData(terrain: TerrainType.grass)),
         );
 
+  // Incremented on every mutation so consumers can detect changes cheaply.
+  int _version = 0;
+  int get version => _version;
+  void _touch() => _version++;
+
   final int width;
   final int height;
 
@@ -63,11 +68,13 @@ class TileMap {
   void set(WorldPosition pos, TerrainType type) {
     assert(pos.isValid(width, height), 'Position out of bounds: $pos');
     _tiles[pos.row][pos.col].terrain = type;
+    _touch();
   }
 
   void setResource(WorldPosition pos, ResourceType? resource) {
     assert(pos.isValid(width, height), 'Position out of bounds: $pos');
     _tiles[pos.row][pos.col].resource = resource;
+    _touch();
   }
 
   ResourceType? getResource(WorldPosition pos) =>
@@ -82,6 +89,7 @@ class TileMap {
     if (zone == null) {
       _tiles[pos.row][pos.col].buildingLevel = BuildingLevel.empty;
     }
+    _touch();
   }
 
   BuildingLevel getBuildingLevel(WorldPosition pos) =>
@@ -90,6 +98,7 @@ class TileMap {
   void setBuildingLevel(WorldPosition pos, BuildingLevel level) {
     assert(pos.isValid(width, height), 'Position out of bounds: $pos');
     _tiles[pos.row][pos.col].buildingLevel = level;
+    _touch();
   }
 
   bool contains(WorldPosition pos) => pos.isValid(width, height);
@@ -97,56 +106,67 @@ class TileMap {
   void setRoad(WorldPosition pos, {bool value = true}) {
     assert(pos.isValid(width, height));
     _tiles[pos.row][pos.col].hasRoad = value;
+    _touch();
   }
 
   void setPowerLine(WorldPosition pos, {bool value = true}) {
     assert(pos.isValid(width, height));
     _tiles[pos.row][pos.col].hasPowerLine = value;
+    _touch();
   }
 
   void setPipe(WorldPosition pos, {bool value = true}) {
     assert(pos.isValid(width, height));
     _tiles[pos.row][pos.col].hasPipe = value;
+    _touch();
   }
 
   void setPowerPlant(WorldPosition pos, {bool value = true}) {
     assert(pos.isValid(width, height));
     _tiles[pos.row][pos.col].hasPowerPlant = value;
+    _touch();
   }
 
   void setWaterTower(WorldPosition pos, {bool value = true}) {
     assert(pos.isValid(width, height));
     _tiles[pos.row][pos.col].hasWaterTower = value;
+    _touch();
   }
 
   void setPark(WorldPosition pos, {bool value = true}) {
     assert(pos.isValid(width, height));
     _tiles[pos.row][pos.col].hasPark = value;
+    _touch();
   }
 
   void setPoliceStation(WorldPosition pos, {bool value = true}) {
     assert(pos.isValid(width, height));
     _tiles[pos.row][pos.col].hasPoliceStation = value;
+    _touch();
   }
 
   void setFireStation(WorldPosition pos, {bool value = true}) {
     assert(pos.isValid(width, height));
     _tiles[pos.row][pos.col].hasFireStation = value;
+    _touch();
   }
 
   void setSchool(WorldPosition pos, {bool value = true}) {
     assert(pos.isValid(width, height));
     _tiles[pos.row][pos.col].hasSchool = value;
+    _touch();
   }
 
   void setHospital(WorldPosition pos, {bool value = true}) {
     assert(pos.isValid(width, height));
     _tiles[pos.row][pos.col].hasHospital = value;
+    _touch();
   }
 
   void setSpaceport(WorldPosition pos, {bool value = true}) {
     assert(pos.isValid(width, height));
     _tiles[pos.row][pos.col].hasSpaceport = value;
+    _touch();
   }
 
   void clearAll(WorldPosition pos) {
@@ -165,9 +185,27 @@ class TileMap {
     t.hasSchool = false;
     t.hasFireStation = false;
     t.hasSpaceport = false;
+    _touch();
   }
 
+  // ── Cached flood-fill results ────────────────────────────────────────────
+
+  Set<WorldPosition>? _cachedPowered;
+  int _poweredVersion = -1;
+
+  Set<WorldPosition>? _cachedWatered;
+  int _wateredVersion = -1;
+
   Set<WorldPosition> computeWateredTiles() {
+    if (_cachedWatered != null && _wateredVersion == _version) {
+      return _cachedWatered!;
+    }
+    _wateredVersion = _version;
+    _cachedWatered = _computeWatered();
+    return _cachedWatered!;
+  }
+
+  Set<WorldPosition> _computeWatered() {
     final towers = <WorldPosition>[];
     final pipes = <WorldPosition>{};
     for (var row = 0; row < height; row++) {
@@ -193,6 +231,15 @@ class TileMap {
   }
 
   Set<WorldPosition> computePoweredTiles() {
+    if (_cachedPowered != null && _poweredVersion == _version) {
+      return _cachedPowered!;
+    }
+    _poweredVersion = _version;
+    _cachedPowered = _computePowered();
+    return _cachedPowered!;
+  }
+
+  Set<WorldPosition> _computePowered() {
     final plants = <WorldPosition>[];
     final lines = <WorldPosition>{};
     for (var row = 0; row < height; row++) {

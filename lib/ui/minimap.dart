@@ -102,5 +102,6 @@ class _MinimapPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _MinimapPainter old) => true;
+  bool shouldRepaint(covariant _MinimapPainter old) =>
+      tileMap.version != old.tileMap.version;
 }
