@@ -59,6 +59,7 @@ class AudioSettings {
 
 class AudioManager extends Notifier<AudioSettings> {
   MusicTrack? _currentTrack;
+  bool _bgmInitialized = false;
 
   @override
   AudioSettings build() => const AudioSettings();
@@ -92,6 +93,7 @@ class AudioManager extends Notifier<AudioSettings> {
     if (_currentTrack == track) return;
     _currentTrack = track;
     try {
+      _bgmInitialized = true;
       await FlameAudio.bgm.stop();
       if (state.isMusicAudible) {
         await FlameAudio.bgm.play(track.filename, volume: state.musicVolume);
@@ -114,12 +116,11 @@ class AudioManager extends Notifier<AudioSettings> {
   }
 
   void _applyMusicVolume() {
+    if (!_bgmInitialized) return;
     try {
-      if (state.isMusicAudible) {
-        FlameAudio.bgm.audioPlayer?.setVolume(state.musicVolume);
-      } else {
-        FlameAudio.bgm.audioPlayer?.setVolume(0);
-      }
+      final player = FlameAudio.bgm.audioPlayer;
+      if (player == null) return;
+      player.setVolume(state.isMusicAudible ? state.musicVolume : 0);
     } catch (_) {}
   }
 }
