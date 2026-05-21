@@ -54,6 +54,15 @@ class TileMapComponent extends Component with HasGameReference {
   static final _spaceportBgPaint = Paint()..color = const Color(0xFF0D0D26);
   static final _spaceportPaint = Paint()..color = const Color(0xFF7B1FA2);
 
+  // Reusable paints for hot-path color-only rendering (avoids per-frame allocation)
+  static final _fillPaint = Paint()..style = PaintingStyle.fill;
+  static final _strokePaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.0;
+  static final _bldHeightPaint = Paint()
+    ..color = Colors.black38
+    ..style = PaintingStyle.fill;
+
   // Zone tints (shown when no overlay, no building sprite)
   static final _zoneTints = {
     ZoneType.residential: const Color(0x4032CD32),
@@ -107,7 +116,7 @@ class TileMapComponent extends Component with HasGameReference {
         if (terrainSprite != null) {
           terrainSprite.render(canvas, position: screenPos, size: destSize);
         } else {
-          canvas.drawRect(rect, Paint()..color = data.terrain.debugColor);
+          canvas.drawRect(rect, _fillPaint..color = data.terrain.debugColor);
         }
 
         // ── Zone / Building ──────────────────────────────────────────
@@ -121,13 +130,13 @@ class TileMapComponent extends Component with HasGameReference {
               // Fallback: colored fill + height indicator
               final color = _buildingColors[(zone, data.buildingLevel)] ??
                   (_zoneTints[zone] ?? Colors.grey);
-              canvas.drawRect(rect, Paint()..color = color);
+              canvas.drawRect(rect, _fillPaint..color = color);
               _drawBuildingHeight(canvas, rect, data.buildingLevel);
             }
           } else if (activeOverlay == OverlayType.none) {
             // Empty zone — subtle tint + dashed border
             final tint = _zoneTints[zone];
-            if (tint != null) canvas.drawRect(rect, Paint()..color = tint);
+            if (tint != null) canvas.drawRect(rect, _fillPaint..color = tint);
             _drawZoneBorder(canvas, rect, zone);
           }
         }
@@ -288,7 +297,7 @@ class TileMapComponent extends Component with HasGameReference {
           final value = overlayValues[pos] ?? 0.0;
           if (value > 0) {
             final color = Color.lerp(activeOverlay.lowColor, activeOverlay.highColor, value)!;
-            canvas.drawRect(rect, Paint()..color = color);
+            canvas.drawRect(rect, _fillPaint..color = color);
           }
         }
 
@@ -308,12 +317,11 @@ class TileMapComponent extends Component with HasGameReference {
     final bars = level.index; // 1=small, 2=medium, 3=large
     const barH = 3.0;
     const gap = 2.0;
-    final paint = Paint()..color = Colors.black38;
     for (var i = 0; i < bars; i++) {
       final y = tile.bottom - 4 - i * (barH + gap);
       canvas.drawRect(
         Rect.fromLTWH(tile.left + 2, y, tile.width - 4, barH),
-        paint,
+        _bldHeightPaint,
       );
     }
   }
@@ -326,9 +334,8 @@ class TileMapComponent extends Component with HasGameReference {
     };
     canvas.drawRect(
       tile,
-      Paint()
+      _strokePaint
         ..color = color.withAlpha(180)
-        ..style = PaintingStyle.stroke
         ..strokeWidth = 1.0,
     );
   }
