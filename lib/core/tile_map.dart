@@ -65,6 +65,9 @@ class TileMap {
   int get version => _version;
   void _touch() => _version++;
 
+  // Called when TileData fields are mutated directly (bypassing setters).
+  void markDirty() => _version++;
+
   final int width;
   final int height;
 

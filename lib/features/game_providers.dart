@@ -633,7 +633,10 @@ class GameNotifier extends Notifier<GameModel> {
     t.hasSchool = false;
     t.hasFireStation = false;
     t.extractionBuilding = null;
+    t.hasRailTrack = false;
+    t.hasStation = false;
     // Power plants and water towers kept intact (use demolishAll to remove them)
+    tileMap.markDirty();
     state = state.copyWith();
   }
 
